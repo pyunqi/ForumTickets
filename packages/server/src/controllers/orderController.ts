@@ -23,8 +23,8 @@ export function create(req: Request, res: Response, next: NextFunction): void {
       return;
     }
 
-    if (quantity < 1 || quantity > 10) {
-      res.status(400).json({ error: '购票数量应在1-10之间' });
+    if (quantity < 1 || quantity > 5) {
+      res.status(400).json({ error: '一次最多购买5张票' });
       return;
     }
 
