@@ -4,6 +4,9 @@ node_modules/
 # Build outputs
 dist/
 build/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
 
 # Environment files
 .env
@@ -11,8 +14,11 @@ build/
 .env.*.local
 
 # Database
-data/*.db
+data/
+packages/data/
 *.db
+*.db-shm
+*.db-wal
 
 # IDE
 .vscode/
