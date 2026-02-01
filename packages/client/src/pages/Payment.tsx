@@ -123,19 +123,63 @@ export function Payment() {
               />
               <span className="ml-3 font-medium">微信支付</span>
             </label>
+            <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+              <input
+                type="radio"
+                name="payment"
+                value="transfer"
+                checked={paymentMethod === 'transfer'}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-4 h-4 text-blue-600"
+              />
+              <span className="ml-3 font-medium">银行转账</span>
+            </label>
           </div>
         </div>
+
+        {paymentMethod === 'transfer' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-6">
+            <h3 className="text-lg font-medium text-amber-800 mb-4">银行转账信息</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-amber-700">收款银行</span>
+                <span className="font-medium text-gray-900">中国工商银行</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-amber-700">账户名称</span>
+                <span className="font-medium text-gray-900">Forum科技有限公司</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-amber-700">银行账号</span>
+                <span className="font-mono font-medium text-gray-900">6222 0000 1234 5678 901</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-amber-700">转账金额</span>
+                <span className="font-bold text-blue-600">¥{order.total_amount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-amber-700">转账备注</span>
+                <span className="font-mono font-medium text-gray-900">{order.order_no}</span>
+              </div>
+            </div>
+            <p className="mt-4 text-xs text-amber-600">
+              请在转账时备注订单号，转账后工作人员将在 1-2 个工作日内确认并发送电子票
+            </p>
+          </div>
+        )}
 
         <button
           onClick={handlePay}
           disabled={paying}
           className="w-full py-4 px-4 bg-blue-600 text-white text-lg font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
         >
-          {paying ? '支付中...' : `确认支付 ¥${order.total_amount.toFixed(2)}`}
+          {paying ? '支付中...' : paymentMethod === 'transfer' ? '我已完成转账' : `确认支付 ¥${order.total_amount.toFixed(2)}`}
         </button>
 
         <p className="mt-4 text-center text-sm text-gray-500">
-          这是模拟支付，点击按钮即可完成支付
+          {paymentMethod === 'transfer'
+            ? '点击按钮确认已转账，工作人员将核实后处理'
+            : '这是模拟支付，点击按钮即可完成支付'}
         </p>
       </div>
     </Layout>
