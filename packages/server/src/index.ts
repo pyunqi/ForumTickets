@@ -7,8 +7,13 @@ import { initializeDefaultConference } from './services/conferenceService';
 import { verifyEmailConnection } from './services/emailService';
 
 async function bootstrap() {
+  console.log('Starting ForumTickets server...');
+  console.log(`Database path: ${config.databasePath}`);
+  console.log(`Node environment: ${config.nodeEnv}`);
+
   // Initialize database
   const db = getDatabase();
+  console.log('Database connected successfully');
 
   // Auto-seed super admin if not exists
   const existingAdmin = db.prepare('SELECT id FROM admins WHERE role = ?').get('super_admin');

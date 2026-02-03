@@ -9,8 +9,8 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: config.nodeEnv === 'production' 
-    ? ['https://nzsecft.zeabur.app']  // ✅ 明确指定域名
+  origin: config.nodeEnv === 'production'
+    ? true  // 生产环境允许所有来源（同域部署）
     : (config.corsOrigin || ['http://localhost:5173', 'http://localhost:3000']),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -20,7 +20,12 @@ app.use(express.json());
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', env: config.nodeEnv, timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    env: config.nodeEnv,
+    timestamp: new Date().toISOString(),
+    dbPath: config.databasePath,
+  });
 });
 
 // API routes
