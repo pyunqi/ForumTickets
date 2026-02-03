@@ -1,3 +1,4 @@
 {
+  "node_version": "20",
   "start_command": "mkdir -p /var/data && node dist/index.js"
 }

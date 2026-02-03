@@ -1,4 +1,4 @@
 {
-  "build_command": "npm install && npm run build",
+  "node_version": "20",
   "output_dir": "dist"
 }
