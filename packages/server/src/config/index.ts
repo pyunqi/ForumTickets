@@ -11,7 +11,9 @@ export const config = {
   adminUsername: process.env.ADMIN_USERNAME || 'admin',
   adminPassword: process.env.ADMIN_PASSWORD || 'admin123',
   databasePath: process.env.DATABASE_PATH || path.join(__dirname, '../../../data/forum_tickets.db'),
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  corsOrigin: process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map(s => s.trim())
+    : ['http://localhost:5173', 'http://localhost:3000'],
 
   // Email configuration (Gmail)
   email: {

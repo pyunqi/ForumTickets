@@ -1,0 +1,4 @@
+{
+  "build_command": "npm install && npm rebuild better-sqlite3 && npm run build",
+  "start_command": "mkdir -p /var/data && node dist/index.js"
+}
