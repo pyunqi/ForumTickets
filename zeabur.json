@@ -2,7 +2,7 @@
   "$schema": "https://schema.zeabur.app/template.json",
   "type": "nodejs",
   "buildCommand": "pnpm install && pnpm build",
-  "startCommand": "pnpm start",
+  "startCommand": "mkdir -p /var/data && pnpm start",
   "installCommand": "pnpm install --frozen-lockfile",
   "environment": {
     "NODE_ENV": "production",

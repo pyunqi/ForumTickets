@@ -20,11 +20,20 @@ export function getDatabase(): Database.Database {
     // Initialize schema
     db.exec(schema);
 
-    // Migration: Add attendees_info column for existing databases
-    try {
-      db.exec('ALTER TABLE orders ADD COLUMN attendees_info TEXT');
-    } catch {
-      // Column already exists, ignore error
+    // Migrations for existing databases
+    const migrations = [
+      'ALTER TABLE orders ADD COLUMN attendees_info TEXT',
+      'ALTER TABLE orders ADD COLUMN payment_method VARCHAR(20)',
+      'ALTER TABLE orders ADD COLUMN payer_bank_last4 VARCHAR(4)',
+      'ALTER TABLE orders ADD COLUMN verified_by VARCHAR(50)',
+    ];
+
+    for (const migration of migrations) {
+      try {
+        db.exec(migration);
+      } catch {
+        // Column already exists, ignore error
+      }
     }
   }
   return db;

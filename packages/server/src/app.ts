@@ -18,6 +18,11 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Health check endpoint
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', env: config.nodeEnv, timestamp: new Date().toISOString() });
+});
+
 // API routes
 app.use('/api', routes);
 
