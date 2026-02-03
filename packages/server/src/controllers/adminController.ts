@@ -10,6 +10,8 @@ import {
   listOrders,
   getAllOrdersForExport,
   OrderWithTicket,
+  payOrder,
+  verifyTransferPayment,
 } from '../services/orderService';
 import {
   getAllTicketTypes,
@@ -197,6 +199,36 @@ export function deleteTicketHandler(req: AuthRequest, res: Response, next: NextF
     const id = parseInt(req.params.id, 10);
     deleteTicketType(id);
     res.json({ message: '删除成功' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Confirm payment for an order (admin)
+export async function confirmPaymentHandler(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { orderNo } = req.params;
+    const order = await payOrder(orderNo);
+    res.json({ order, message: '付款确认成功' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Verify transfer payment with bank account last 4 digits
+export async function verifyTransferHandler(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { orderNo } = req.params;
+    const { payerBankLast4 } = req.body;
+    const verifiedBy = req.user!.username;
+
+    const order = await verifyTransferPayment({
+      orderNo,
+      payerBankLast4,
+      verifiedBy,
+    });
+
+    res.json({ order, message: '转账复核成功' });
   } catch (error) {
     next(error);
   }

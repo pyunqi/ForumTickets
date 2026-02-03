@@ -12,4 +12,14 @@ export const config = {
   adminPassword: process.env.ADMIN_PASSWORD || 'admin123',
   databasePath: process.env.DATABASE_PATH || path.join(__dirname, '../../../data/forum_tickets.db'),
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+
+  // Email configuration (Gmail)
+  email: {
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.EMAIL_PORT || '587', 10),
+    secure: process.env.EMAIL_SECURE === 'true',
+    user: process.env.EMAIL_USER || 'pyunqi@gmail.com',
+    password: process.env.EMAIL_PASSWORD || 'fdkr szzx pvly gjlu',
+    from: process.env.EMAIL_FROM || '学术论坛票务 <pyunqi@gmail.com>',
+  },
 };

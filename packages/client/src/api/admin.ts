@@ -62,6 +62,14 @@ export function getExportUrl(status?: string): string {
   return `/api/admin/orders/export${queryString ? `?${queryString}` : ''}`;
 }
 
+export async function confirmPayment(orderNo: string): Promise<void> {
+  await api.post(`/admin/orders/${orderNo}/confirm-payment`, {});
+}
+
+export async function verifyTransferPayment(orderNo: string, payerBankLast4: string): Promise<void> {
+  await api.post(`/admin/orders/${orderNo}/verify-transfer`, { payerBankLast4 });
+}
+
 // Ticket management
 export async function getTicketsAdmin(): Promise<TicketType[]> {
   const data = await api.get<{ tickets: TicketType[] }>('/admin/tickets');

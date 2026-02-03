@@ -2,6 +2,9 @@ import app from './app';
 import { config } from './config';
 import { getDatabase } from './database/connection';
 import { hashPassword } from './utils/password';
+import { initializeDefaultSponsors } from './services/sponsorService';
+import { initializeDefaultConference } from './services/conferenceService';
+import { verifyEmailConnection } from './services/emailService';
 
 async function bootstrap() {
   // Initialize database
@@ -37,6 +40,15 @@ async function bootstrap() {
     }
     console.log('Created default ticket types');
   }
+
+  // Initialize default sponsors
+  initializeDefaultSponsors();
+
+  // Initialize default conference
+  initializeDefaultConference();
+
+  // Verify email connection (non-blocking)
+  verifyEmailConnection().catch(() => {});
 
   // Start server
   app.listen(config.port, () => {

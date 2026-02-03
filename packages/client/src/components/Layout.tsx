@@ -7,18 +7,15 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-[#faf8f5]">
+      <header className="bg-[#1a365d] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <Link to="/" className="text-xl font-bold text-blue-600">
-            Forum Tickets
+          <Link to="/" className="text-xl font-serif font-bold text-[#c9a227]">
+            学术论坛 2026
           </Link>
-          <nav className="space-x-4">
-            <Link to="/" className="text-gray-600 hover:text-gray-900">
+          <nav className="space-x-6">
+            <Link to="/" className="text-gray-200 hover:text-[#c9a227] transition-colors text-sm">
               首页
-            </Link>
-            <Link to="/admin/login" className="text-gray-600 hover:text-gray-900">
-              管理后台
             </Link>
           </nav>
         </div>
@@ -26,9 +23,9 @@ export function Layout({ children }: LayoutProps) {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {children}
       </main>
-      <footer className="bg-white border-t mt-auto">
-        <div className="max-w-7xl mx-auto px-4 py-6 text-center text-gray-500 text-sm">
-          Forum Tickets - 票务预定系统
+      <footer className="bg-[#1a365d] border-t border-[#c9a227]/30 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 py-6 text-center text-gray-400 text-sm">
+          第十二届国际学术论坛 - 注册报名系统
         </div>
       </footer>
     </div>

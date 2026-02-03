@@ -19,6 +19,13 @@ export function getDatabase(): Database.Database {
 
     // Initialize schema
     db.exec(schema);
+
+    // Migration: Add attendees_info column for existing databases
+    try {
+      db.exec('ALTER TABLE orders ADD COLUMN attendees_info TEXT');
+    } catch {
+      // Column already exists, ignore error
+    }
   }
   return db;
 }

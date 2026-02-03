@@ -9,6 +9,13 @@ export interface TicketType {
   created_at: string;
 }
 
+export interface AttendeeInfo {
+  name: string;
+  ticketTypeId: number;
+  ticketName?: string;
+  ticketPrice?: number;
+}
+
 export interface Order {
   id: number;
   order_no: string;
@@ -23,6 +30,10 @@ export interface Order {
   created_at: string;
   ticket_name?: string;
   ticket_price?: number;
+  attendees_info?: string;
+  payment_method?: string;
+  payer_bank_last4?: string;
+  verified_by?: string;
 }
 
 export interface Admin {

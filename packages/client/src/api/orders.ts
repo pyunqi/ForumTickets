@@ -1,12 +1,15 @@
 import { api } from './client';
 import type { Order } from '../types';
 
+export interface AttendeeInfo {
+  name: string;
+  ticketTypeId: number;
+}
+
 export interface CreateOrderParams {
-  customerName: string;
   customerEmail: string;
   customerPhone?: string;
-  ticketTypeId: number;
-  quantity: number;
+  attendees: AttendeeInfo[];
 }
 
 export async function createOrder(params: CreateOrderParams): Promise<Order> {
