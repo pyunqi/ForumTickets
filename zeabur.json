@@ -1,14 +1,13 @@
 {
   "$schema": "https://schema.zeabur.app/template.json",
-  "build": {
-    "command": "pnpm install && pnpm build"
-  },
-  "start": {
-    "command": "pnpm start"
-  },
-  "envs": {
+  "type": "nodejs",
+  "buildCommand": "pnpm install && pnpm build",
+  "startCommand": "pnpm start",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "environment": {
     "NODE_ENV": "production",
     "PORT": "3000",
     "DATABASE_PATH": "/var/data/forum_tickets.db"
-  }
+  },
+  "nodeVersion": "20"
 }
