@@ -1,0 +1,4 @@
+{
+  "build_command": "pnpm install && pnpm rebuild better-sqlite3 && pnpm build",
+  "start_command": "mkdir -p /var/data && node packages/server/dist/index.js"
+}
