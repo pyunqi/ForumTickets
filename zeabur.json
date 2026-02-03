@@ -4,10 +4,9 @@
     "command": "pnpm install && pnpm build"
   },
   "start": {
-    "command": "mkdir -p /var/data && pnpm start"
+    "command": "pnpm start"
   },
-  "serverless": false,
-  "env": {
+  "envs": {
     "NODE_ENV": "production",
     "PORT": "3000",
     "DATABASE_PATH": "/var/data/forum_tickets.db"
