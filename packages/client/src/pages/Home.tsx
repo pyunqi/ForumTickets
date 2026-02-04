@@ -10,6 +10,7 @@ export function Home() {
   const [tickets, setTickets] = useState<TicketType[]>([]);
   const [sponsors, setSponsors] = useState<SponsorsGrouped | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { language, setLanguage, t } = useLanguage();
 
@@ -105,14 +106,15 @@ export function Home() {
       {/* Navigation */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#1a365d]/95 backdrop-blur-sm shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <span className="text-xl font-serif font-bold text-[#c9a227]">{t.footer.forumName}</span>
-          <nav className="flex items-center space-x-6">
+          <span className="text-lg md:text-xl font-serif font-bold text-[#c9a227]">{t.footer.forumName}</span>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-6">
             <a href="#about" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.about}</a>
             <a href="#speakers" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.speakers}</a>
             <a href="#schedule" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.schedule}</a>
             <a href="#sponsors" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.sponsors}</a>
             <a href="#tickets" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.tickets}</a>
-            {/* Language Switcher */}
             <button
               onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
               className="px-3 py-1 border border-[#c9a227]/50 text-[#c9a227] text-xs rounded hover:bg-[#c9a227]/10 transition-colors"
@@ -120,7 +122,40 @@ export function Home() {
               {language === 'zh' ? 'EN' : '中文'}
             </button>
           </nav>
+
+          {/* Mobile Menu Button */}
+          <div className="flex items-center gap-3 md:hidden">
+            <button
+              onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
+              className="px-2 py-1 border border-[#c9a227]/50 text-[#c9a227] text-xs rounded"
+            >
+              {language === 'zh' ? 'EN' : '中文'}
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="text-white p-2"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <nav className="md:hidden bg-[#1a365d] border-t border-white/10 px-4 py-4 space-y-3">
+            <a href="#about" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.about}</a>
+            <a href="#speakers" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.speakers}</a>
+            <a href="#schedule" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.schedule}</a>
+            <a href="#sponsors" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.sponsors}</a>
+            <a href="#tickets" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.tickets}</a>
+          </nav>
+        )}
       </header>
 
       {/* Hero Section */}
@@ -178,22 +213,22 @@ export function Home() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-8 max-w-3xl mx-auto pt-8 border-t border-white/10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-3xl mx-auto pt-8 border-t border-white/10">
             <div className="text-center">
-              <div className="text-3xl font-serif font-bold text-[#c9a227]">30+</div>
-              <div className="text-gray-400 text-sm mt-1">{t.hero.stats.reports}</div>
+              <div className="text-2xl md:text-3xl font-serif font-bold text-[#c9a227]">30+</div>
+              <div className="text-gray-400 text-xs md:text-sm mt-1">{t.hero.stats.reports}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-serif font-bold text-[#c9a227]">50+</div>
-              <div className="text-gray-400 text-sm mt-1">{t.hero.stats.papers}</div>
+              <div className="text-2xl md:text-3xl font-serif font-bold text-[#c9a227]">50+</div>
+              <div className="text-gray-400 text-xs md:text-sm mt-1">{t.hero.stats.papers}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-serif font-bold text-[#c9a227]">200+</div>
-              <div className="text-gray-400 text-sm mt-1">{t.hero.stats.scholars}</div>
+              <div className="text-2xl md:text-3xl font-serif font-bold text-[#c9a227]">200+</div>
+              <div className="text-gray-400 text-xs md:text-sm mt-1">{t.hero.stats.scholars}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-serif font-bold text-[#c9a227]">15</div>
-              <div className="text-gray-400 text-sm mt-1">{t.hero.stats.universities}</div>
+              <div className="text-2xl md:text-3xl font-serif font-bold text-[#c9a227]">15</div>
+              <div className="text-gray-400 text-xs md:text-sm mt-1">{t.hero.stats.universities}</div>
             </div>
           </div>
         </div>
@@ -285,7 +320,7 @@ export function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {[
               { name_zh: '张明远', name_en: 'Prof. Zhang', title_zh: '教授、博士生导师', title_en: 'Professor', org_zh: '新西兰教科文中心', org_en: 'NZ Education Centre', field_zh: '数字人文', field_en: 'Digital Humanities' },
               { name_zh: '李思琪', name_en: 'Dr. Li', title_zh: '教授', title_en: 'Professor', org_zh: '奥克兰大学', org_en: 'University of Auckland', field_zh: '计算语言学', field_en: 'Computational Linguistics' },
@@ -339,14 +374,14 @@ export function Home() {
                   { time: '14:00 - 17:30', title_zh: '分论坛A', title_en: 'Panel A', desc_zh: '数字人文与文化遗产保护', desc_en: 'Digital Humanities and Cultural Heritage' },
                   { time: '18:00 - 20:00', title_zh: '欢迎晚宴', title_en: 'Welcome Dinner', desc_zh: '学术交流与社交活动', desc_en: 'Academic networking event' },
                 ].map((item, index) => (
-                  <div key={index} className="flex gap-6">
-                    <div className="w-36 shrink-0 text-right">
-                      <span className="text-[#7b2c3a] font-mono text-sm">{item.time}</span>
+                  <div key={index} className="flex flex-col sm:flex-row gap-2 sm:gap-6">
+                    <div className="sm:w-36 shrink-0 sm:text-right">
+                      <span className="text-[#7b2c3a] font-mono text-xs sm:text-sm">{item.time}</span>
                     </div>
-                    <div className="relative pl-6 border-l-2 border-[#1a365d]/20 pb-4">
+                    <div className="relative pl-4 sm:pl-6 border-l-2 border-[#1a365d]/20 pb-4">
                       <div className="absolute -left-[5px] top-1 w-2 h-2 bg-[#c9a227] rounded-full"></div>
-                      <h4 className="font-medium text-[#1a365d]">{language === 'en' ? item.title_en : item.title_zh}</h4>
-                      <p className="text-gray-500 text-sm">{language === 'en' ? item.desc_en : item.desc_zh}</p>
+                      <h4 className="font-medium text-[#1a365d] text-sm sm:text-base">{language === 'en' ? item.title_en : item.title_zh}</h4>
+                      <p className="text-gray-500 text-xs sm:text-sm">{language === 'en' ? item.desc_en : item.desc_zh}</p>
                     </div>
                   </div>
                 ))}
@@ -366,14 +401,14 @@ export function Home() {
                   { time: '16:30 - 17:30', title_zh: '圆桌论坛', title_en: 'Roundtable', desc_zh: '跨学科合作的机遇与挑战', desc_en: 'Opportunities and Challenges in Interdisciplinary Collaboration' },
                   { time: '17:30 - 18:00', title_zh: '闭幕式', title_en: 'Closing Ceremony', desc_zh: '优秀论文颁奖、闭幕致辞', desc_en: 'Best Paper Awards and Closing Remarks' },
                 ].map((item, index) => (
-                  <div key={index} className="flex gap-6">
-                    <div className="w-36 shrink-0 text-right">
-                      <span className="text-[#7b2c3a] font-mono text-sm">{item.time}</span>
+                  <div key={index} className="flex flex-col sm:flex-row gap-2 sm:gap-6">
+                    <div className="sm:w-36 shrink-0 sm:text-right">
+                      <span className="text-[#7b2c3a] font-mono text-xs sm:text-sm">{item.time}</span>
                     </div>
-                    <div className="relative pl-6 border-l-2 border-[#1a365d]/20 pb-4">
+                    <div className="relative pl-4 sm:pl-6 border-l-2 border-[#1a365d]/20 pb-4">
                       <div className="absolute -left-[5px] top-1 w-2 h-2 bg-[#c9a227] rounded-full"></div>
-                      <h4 className="font-medium text-[#1a365d]">{language === 'en' ? item.title_en : item.title_zh}</h4>
-                      <p className="text-gray-500 text-sm">{language === 'en' ? item.desc_en : item.desc_zh}</p>
+                      <h4 className="font-medium text-[#1a365d] text-sm sm:text-base">{language === 'en' ? item.title_en : item.title_zh}</h4>
+                      <p className="text-gray-500 text-xs sm:text-sm">{language === 'en' ? item.desc_en : item.desc_zh}</p>
                     </div>
                   </div>
                 ))}
@@ -458,7 +493,7 @@ export function Home() {
       {/* Footer */}
       <footer className="bg-[#1a365d] text-gray-300 py-12 border-t border-[#c9a227]/30">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
               <h3 className="text-[#c9a227] font-serif font-bold text-lg mb-4">{t.footer.forumName}</h3>
               <p className="text-sm text-gray-400">{t.footer.slogan}</p>
