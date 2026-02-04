@@ -8,5 +8,5 @@
     "PORT": "3000",
     "DATABASE_PATH": "/var/data/forum_tickets.db"
   },
-  "nodeVersion": "20"
+  "nodeVersion": "22"
 }
