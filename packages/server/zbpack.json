@@ -1,4 +1,5 @@
 {
   "node_version": "20",
+  "build_command": "npm install && npm run build",
   "start_command": "mkdir -p /var/data && node dist/index.js"
 }
