@@ -1,6 +1,6 @@
 import app from './app';
 import { config } from './config';
-import { getDatabase } from './database/connection';
+import { initDatabaseAsync, getDatabase } from './database/connection';
 import { hashPassword } from './utils/password';
 import { initializeDefaultSponsors } from './services/sponsorService';
 import { initializeDefaultConference } from './services/conferenceService';
@@ -11,7 +11,8 @@ async function bootstrap() {
   console.log(`Database path: ${config.databasePath}`);
   console.log(`Node environment: ${config.nodeEnv}`);
 
-  // Initialize database
+  // Initialize database (async for sql.js)
+  await initDatabaseAsync();
   const db = getDatabase();
   console.log('Database connected successfully');
 
