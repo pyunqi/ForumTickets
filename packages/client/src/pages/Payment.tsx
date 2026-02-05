@@ -14,6 +14,7 @@ export function Payment() {
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
+  const [showTransferConfirm, setShowTransferConfirm] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -43,8 +44,17 @@ export function Payment() {
     loadData();
   }, [orderNo, navigate]);
 
+  const handlePayClick = () => {
+    if (paymentMethod === 'transfer') {
+      setShowTransferConfirm(true);
+    } else {
+      handlePay();
+    }
+  };
+
   const handlePay = async () => {
     if (!orderNo) return;
+    setShowTransferConfirm(false);
     setPaying(true);
     try {
       await payOrder(orderNo);
@@ -170,7 +180,7 @@ export function Payment() {
         )}
 
         <button
-          onClick={handlePay}
+          onClick={handlePayClick}
           disabled={paying || !paymentMethod}
           className="w-full py-4 px-4 bg-[#1a365d] text-white text-lg font-medium rounded hover:bg-[#234876] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
         >
@@ -183,6 +193,46 @@ export function Payment() {
             : '这是模拟支付环境，点击按钮即可完成支付'}
         </p>
       </div>
+
+      {/* Transfer Confirmation Modal */}
+      {showTransferConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-xl font-serif font-bold text-[#1a365d] mb-4">
+              确认转账信息
+            </h3>
+            <div className="mb-6">
+              <p className="text-gray-700 mb-3">
+                请确认您已按照以下信息完成银行转账：
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1 mb-4">
+                <li>• 转账金额：<span className="font-medium text-[#7b2c3a]">¥{order.total_amount.toFixed(0)}</span></li>
+                <li>• 转账备注：<span className="font-mono">学术论坛+{order.order_no}</span></li>
+              </ul>
+              <div className="bg-[#fef3c7] border border-[#f59e0b] rounded p-3">
+                <p className="text-sm text-[#92400e]">
+                  <strong>温馨提示：</strong>如果会务组未能收到您的转账款项，我们将通过您预留的邮箱 ({order.customer_email}) 与您联系核实。请确保邮箱地址正确并注意查收邮件。
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowTransferConfirm(false)}
+                className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
+              >
+                返回修改
+              </button>
+              <button
+                onClick={handlePay}
+                disabled={paying}
+                className="flex-1 py-3 px-4 bg-[#1a365d] text-white rounded hover:bg-[#234876] disabled:bg-gray-400 transition-colors"
+              >
+                {paying ? '处理中...' : '确认已转账'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
