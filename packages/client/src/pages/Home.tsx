@@ -242,7 +242,7 @@ export function Home() {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-24 bg-white">
+      <section id="about" className="py-24 bg-white scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
@@ -310,7 +310,7 @@ export function Home() {
       </section>
 
       {/* Speakers Section */}
-      <section id="speakers" className="py-24 bg-[#faf8f5]">
+      <section id="speakers" className="py-24 bg-[#faf8f5] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{t.speakers.label}</span>
@@ -352,7 +352,7 @@ export function Home() {
       </section>
 
       {/* Schedule Section */}
-      <section id="schedule" className="py-24 bg-white">
+      <section id="schedule" className="py-24 bg-white scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{t.schedule.label}</span>
@@ -419,7 +419,7 @@ export function Home() {
       </section>
 
       {/* Sponsors Section */}
-      <section id="sponsors" className="py-24 bg-[#faf8f5]">
+      <section id="sponsors" className="py-24 bg-[#faf8f5] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{t.sponsors.label}</span>
@@ -442,7 +442,7 @@ export function Home() {
       </section>
 
       {/* Tickets Section */}
-      <section id="tickets" className="py-24 bg-[#1a365d]">
+      <section id="tickets" className="py-24 bg-[#1a365d] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <span className="text-[#c9a227] font-medium text-sm uppercase tracking-widest">{t.tickets.label}</span>
