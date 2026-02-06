@@ -147,8 +147,8 @@ export function SponsorManagement() {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={resetForm}>
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b">
               <h3 className="text-lg font-semibold">
                 {editingSponsor ? '编辑赞助商' : '添加赞助商'}

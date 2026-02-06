@@ -156,8 +156,8 @@ export function ConferenceManagement() {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto py-8">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto py-8" onClick={resetForm}>
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b">
               <h3 className="text-lg font-semibold">
                 {editingConference ? '编辑会议' : '添加会议'}
