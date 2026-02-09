@@ -70,6 +70,10 @@ export async function verifyTransferPayment(orderNo: string, payerBankLast4: str
   await api.post(`/admin/orders/${orderNo}/verify-transfer`, { payerBankLast4 });
 }
 
+export async function deleteOrder(orderNo: string): Promise<void> {
+  await api.delete(`/admin/orders/${orderNo}`);
+}
+
 // Ticket management
 export async function getTicketsAdmin(): Promise<TicketType[]> {
   const data = await api.get<{ tickets: TicketType[] }>('/admin/tickets');

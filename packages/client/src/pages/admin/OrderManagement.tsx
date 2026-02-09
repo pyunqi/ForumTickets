@@ -1,15 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getOrders, getExportUrl, confirmPayment, verifyTransferPayment } from '../../api/admin';
+import { getOrders, getExportUrl, confirmPayment, verifyTransferPayment, deleteOrder } from '../../api/admin';
 import type { Order, PaginatedOrders } from '../../types';
 
 export function OrderManagement() {
   const [data, setData] = useState<PaginatedOrders | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [confirmingOrder, setConfirmingOrder] = useState<string | null>(null);
+  const [deletingOrder, setDeletingOrder] = useState<string | null>(null);
   const [verifyingOrder, setVerifyingOrder] = useState<Order | null>(null);
   const [bankLast4, setBankLast4] = useState('');
   const [verifySubmitting, setVerifySubmitting] = useState(false);
@@ -17,14 +19,14 @@ export function OrderManagement() {
   const loadOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await getOrders({ page, status: status || undefined, search: search || undefined });
+      const result = await getOrders({ page, pageSize, status: status || undefined, search: search || undefined });
       setData(result);
     } catch {
       // ignore
     } finally {
       setLoading(false);
     }
-  }, [page, status, search]);
+  }, [page, pageSize, status, search]);
 
   useEffect(() => {
     loadOrders();
@@ -83,6 +85,20 @@ export function OrderManagement() {
       alert(err instanceof Error ? err.message : '操作失败');
     } finally {
       setVerifySubmitting(false);
+    }
+  };
+
+  const handleDeleteOrder = async (orderNo: string) => {
+    if (!confirm(`确认删除订单 ${orderNo}？此操作不可恢复。`)) return;
+
+    setDeletingOrder(orderNo);
+    try {
+      await deleteOrder(orderNo);
+      await loadOrders();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '删除失败');
+    } finally {
+      setDeletingOrder(null);
     }
   };
 
@@ -246,31 +262,40 @@ export function OrderManagement() {
                       {new Date(order.created_at).toLocaleString('zh-CN')}
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap text-sm">
-                      {order.status === 'pending' && (
+                      <div className="flex items-center gap-2">
+                        {order.status === 'pending' && (
+                          <button
+                            onClick={() => handleConfirmPayment(order.order_no)}
+                            disabled={confirmingOrder === order.order_no}
+                            className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {confirmingOrder === order.order_no ? '确认中...' : '确认付款'}
+                          </button>
+                        )}
+                        {order.status === 'paid' && !order.payer_bank_last4 && (
+                          <button
+                            onClick={() => handleOpenVerifyModal(order)}
+                            className="px-3 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600 transition-colors"
+                          >
+                            转账复核
+                          </button>
+                        )}
+                        {order.status === 'paid' && order.payer_bank_last4 && (
+                          <span className="text-green-600 text-xs" title={`已复核 (尾号${order.payer_bank_last4})`}>
+                            已复核 ✓
+                          </span>
+                        )}
+                        {order.status === 'cancelled' && (
+                          <span className="text-gray-400 text-xs">已取消</span>
+                        )}
                         <button
-                          onClick={() => handleConfirmPayment(order.order_no)}
-                          disabled={confirmingOrder === order.order_no}
-                          className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                          onClick={() => handleDeleteOrder(order.order_no)}
+                          disabled={deletingOrder === order.order_no}
+                          className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                         >
-                          {confirmingOrder === order.order_no ? '确认中...' : '确认付款'}
+                          {deletingOrder === order.order_no ? '删除中...' : '删除'}
                         </button>
-                      )}
-                      {order.status === 'paid' && !order.payer_bank_last4 && (
-                        <button
-                          onClick={() => handleOpenVerifyModal(order)}
-                          className="px-3 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600 transition-colors"
-                        >
-                          转账复核
-                        </button>
-                      )}
-                      {order.status === 'paid' && order.payer_bank_last4 && (
-                        <span className="text-green-600 text-xs" title={`已复核 (尾号${order.payer_bank_last4})`}>
-                          已复核 ✓
-                        </span>
-                      )}
-                      {order.status === 'cancelled' && (
-                        <span className="text-gray-400 text-xs">已取消</span>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -285,10 +310,28 @@ export function OrderManagement() {
             </table>
           </div>
 
-          {data && data.totalPages > 1 && (
-            <div className="flex justify-between items-center mt-6">
-              <div className="text-sm text-gray-500">
-                共 {data.total} 条记录，第 {data.page}/{data.totalPages} 页
+          {data && (
+            <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-500">
+                  共 {data.total} 条记录，第 {data.page}/{data.totalPages || 1} 页
+                </span>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-gray-500">每页</label>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setPage(1);
+                    }}
+                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                  <span className="text-sm text-gray-500">条</span>
+                </div>
               </div>
               <div className="flex gap-2">
                 <button
@@ -299,8 +342,8 @@ export function OrderManagement() {
                   上一页
                 </button>
                 <button
-                  onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
-                  disabled={page >= data.totalPages}
+                  onClick={() => setPage((p) => Math.min(data.totalPages || 1, p + 1))}
+                  disabled={page >= (data.totalPages || 1)}
                   className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   下一页

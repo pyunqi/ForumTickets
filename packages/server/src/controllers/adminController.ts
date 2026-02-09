@@ -12,6 +12,7 @@ import {
   OrderWithTicket,
   payOrder,
   verifyTransferPayment,
+  deleteOrder,
 } from '../services/orderService';
 import {
   getAllTicketTypes,
@@ -229,6 +230,17 @@ export async function verifyTransferHandler(req: AuthRequest, res: Response, nex
     });
 
     res.json({ order, message: '转账复核成功' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Delete an order
+export function deleteOrderHandler(req: AuthRequest, res: Response, next: NextFunction): void {
+  try {
+    const { orderNo } = req.params;
+    deleteOrder(orderNo);
+    res.json({ message: '删除成功' });
   } catch (error) {
     next(error);
   }

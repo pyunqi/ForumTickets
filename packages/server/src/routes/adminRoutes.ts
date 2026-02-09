@@ -9,6 +9,7 @@ import {
   exportOrders,
   confirmPaymentHandler,
   verifyTransferHandler,
+  deleteOrderHandler,
   getTickets,
   createTicketHandler,
   updateTicketHandler,
@@ -46,5 +47,6 @@ router.get('/orders', getOrders);
 router.get('/orders/export', exportOrders);
 router.post('/orders/:orderNo/confirm-payment', confirmPaymentHandler);
 router.post('/orders/:orderNo/verify-transfer', verifyTransferHandler);
+router.delete('/orders/:orderNo', deleteOrderHandler);
 
 export default router;

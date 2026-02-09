@@ -276,6 +276,17 @@ export function getAllOrdersForExport(status?: string): OrderWithTicket[] {
   return db.prepare(query + ' ORDER BY o.created_at DESC').all() as OrderWithTicket[];
 }
 
+export function deleteOrder(orderNo: string): void {
+  const db = getDatabase();
+  const order = getOrderByNo(orderNo);
+
+  if (!order) {
+    throw Object.assign(new Error('订单不存在'), { statusCode: 404 });
+  }
+
+  db.prepare('DELETE FROM orders WHERE order_no = ?').run(orderNo);
+}
+
 export interface VerifyPaymentParams {
   orderNo: string;
   payerBankLast4: string;
