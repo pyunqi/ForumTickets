@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { EmbedProvider } from './context/EmbedContext';
 import { LanguageProvider } from './i18n';
 import { Home } from './pages/Home';
 import { OrderForm } from './pages/OrderForm';
 import { Payment } from './pages/Payment';
 import { OrderSuccess } from './pages/OrderSuccess';
+import { EmbedTickets } from './pages/embed/EmbedTickets';
 import { AdminLogin } from './pages/admin/Login';
 import { AdminDashboard } from './pages/admin/Dashboard';
 
@@ -33,6 +35,10 @@ function AppRoutes() {
       <Route path="/order" element={<OrderForm />} />
       <Route path="/payment/:orderNo" element={<Payment />} />
       <Route path="/order/success/:orderNo" element={<OrderSuccess />} />
+      <Route path="/embed/tickets" element={<EmbedProvider><EmbedTickets /></EmbedProvider>} />
+      <Route path="/embed/order" element={<EmbedProvider><OrderForm /></EmbedProvider>} />
+      <Route path="/embed/payment/:orderNo" element={<EmbedProvider><Payment /></EmbedProvider>} />
+      <Route path="/embed/order/success/:orderNo" element={<EmbedProvider><OrderSuccess /></EmbedProvider>} />
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route
         path="/admin"

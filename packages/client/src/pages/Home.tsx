@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { TicketCard } from '../components/TicketCard';
 import { getTickets } from '../api/tickets';
 import { getSponsors, SponsorsGrouped, Sponsor } from '../api/sponsors';
+import { getPageVisibility, PageVisibility } from '../api/settings';
 import { useLanguage } from '../i18n';
 import type { TicketType } from '../types';
 
 export function Home() {
   const [tickets, setTickets] = useState<TicketType[]>([]);
   const [sponsors, setSponsors] = useState<SponsorsGrouped | null>(null);
+  const [pageVisibility, setPageVisibility] = useState<PageVisibility | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -17,12 +19,14 @@ export function Home() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [ticketsData, sponsorsData] = await Promise.all([
+        const [ticketsData, sponsorsData, visibilityData] = await Promise.all([
           getTickets(),
-          getSponsors()
+          getSponsors(),
+          getPageVisibility()
         ]);
         setTickets(ticketsData);
         setSponsors(sponsorsData);
+        setPageVisibility(visibilityData);
       } catch {
         // ignore
       } finally {
@@ -101,6 +105,12 @@ export function Home() {
     );
   };
 
+  const isSectionVisible = (sectionId: string): boolean => {
+    if (!pageVisibility) return true;
+    const section = pageVisibility.sections.find(s => s.id === sectionId);
+    return section ? section.enabled : true;
+  };
+
   return (
     <div className="min-h-screen bg-[#faf8f5]">
       {/* Navigation */}
@@ -110,11 +120,11 @@ export function Home() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <a href="#about" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.about}</a>
-            <a href="#speakers" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.speakers}</a>
-            <a href="#schedule" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.schedule}</a>
-            <a href="#sponsors" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.sponsors}</a>
-            <a href="#tickets" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.tickets}</a>
+            {isSectionVisible('about') && <a href="#about" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.about}</a>}
+            {isSectionVisible('speakers') && <a href="#speakers" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.speakers}</a>}
+            {isSectionVisible('schedule') && <a href="#schedule" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.schedule}</a>}
+            {isSectionVisible('sponsors') && <a href="#sponsors" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.sponsors}</a>}
+            {isSectionVisible('tickets') && <a href="#tickets" className="text-gray-200 hover:text-[#c9a227] text-sm transition-colors">{t.nav.tickets}</a>}
             <button
               onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
               className="px-3 py-1 border border-[#c9a227]/50 text-[#c9a227] text-xs rounded hover:bg-[#c9a227]/10 transition-colors"
@@ -149,11 +159,11 @@ export function Home() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <nav className="md:hidden bg-[#1a365d] border-t border-white/10 px-4 py-4 space-y-3">
-            <a href="#about" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.about}</a>
-            <a href="#speakers" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.speakers}</a>
-            <a href="#schedule" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.schedule}</a>
-            <a href="#sponsors" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.sponsors}</a>
-            <a href="#tickets" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.tickets}</a>
+            {isSectionVisible('about') && <a href="#about" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.about}</a>}
+            {isSectionVisible('speakers') && <a href="#speakers" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.speakers}</a>}
+            {isSectionVisible('schedule') && <a href="#schedule" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.schedule}</a>}
+            {isSectionVisible('sponsors') && <a href="#sponsors" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.sponsors}</a>}
+            {isSectionVisible('tickets') && <a href="#tickets" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 hover:text-[#c9a227] py-2">{t.nav.tickets}</a>}
           </nav>
         )}
       </header>
@@ -198,18 +208,22 @@ export function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <button
-              onClick={scrollToTickets}
-              className="px-10 py-4 bg-[#c9a227] text-[#1a365d] font-semibold rounded hover:bg-[#d4af37] transition-all shadow-lg"
-            >
-              {t.hero.register}
-            </button>
-            <a
-              href="#about"
-              className="px-10 py-4 border border-white/30 text-white font-semibold rounded hover:bg-white/10 transition-all"
-            >
-              {t.hero.learnMore}
-            </a>
+            {isSectionVisible('tickets') && (
+              <button
+                onClick={scrollToTickets}
+                className="px-10 py-4 bg-[#c9a227] text-[#1a365d] font-semibold rounded hover:bg-[#d4af37] transition-all shadow-lg"
+              >
+                {t.hero.register}
+              </button>
+            )}
+            {isSectionVisible('about') && (
+              <a
+                href="#about"
+                className="px-10 py-4 border border-white/30 text-white font-semibold rounded hover:bg-white/10 transition-all"
+              >
+                {t.hero.learnMore}
+              </a>
+            )}
           </div>
 
           {/* Stats */}
@@ -242,7 +256,7 @@ export function Home() {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-24 bg-white scroll-mt-20">
+      {isSectionVisible('about') && <section id="about" className="py-24 bg-white scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
@@ -307,10 +321,10 @@ export function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* Speakers Section */}
-      <section id="speakers" className="py-24 bg-[#faf8f5] scroll-mt-20">
+      {isSectionVisible('speakers') && <section id="speakers" className="py-24 bg-[#faf8f5] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{t.speakers.label}</span>
@@ -349,10 +363,10 @@ export function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* Schedule Section */}
-      <section id="schedule" className="py-24 bg-white scroll-mt-20">
+      {isSectionVisible('schedule') && <section id="schedule" className="py-24 bg-white scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{t.schedule.label}</span>
@@ -416,10 +430,10 @@ export function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* Sponsors Section */}
-      <section id="sponsors" className="py-24 bg-[#faf8f5] scroll-mt-20">
+      {isSectionVisible('sponsors') && <section id="sponsors" className="py-24 bg-[#faf8f5] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{t.sponsors.label}</span>
@@ -439,10 +453,10 @@ export function Home() {
             </>
           )}
         </div>
-      </section>
+      </section>}
 
       {/* Tickets Section */}
-      <section id="tickets" className="py-24 bg-[#1a365d] scroll-mt-20">
+      {isSectionVisible('tickets') && <section id="tickets" className="py-24 bg-[#1a365d] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <span className="text-[#c9a227] font-medium text-sm uppercase tracking-widest">{t.tickets.label}</span>
@@ -465,10 +479,10 @@ export function Home() {
             </div>
           )}
         </div>
-      </section>
+      </section>}
 
       {/* CTA Section */}
-      <section className="py-24 bg-[#faf8f5]">
+      {isSectionVisible('cta') && <section className="py-24 bg-[#faf8f5]">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="mb-6">
             <svg className="w-16 h-16 mx-auto text-[#1a365d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -488,7 +502,7 @@ export function Home() {
             {t.cta.button}
           </button>
         </div>
-      </section>
+      </section>}
 
       {/* Footer */}
       <footer className="bg-[#1a365d] text-gray-300 py-12 border-t border-[#c9a227]/30">

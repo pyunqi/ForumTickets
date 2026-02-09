@@ -3,11 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { getOrder, payOrder } from '../api/orders';
 import { getEnabledPaymentMethods, PaymentMethod } from '../api/settings';
+import { useEmbed } from '../context/EmbedContext';
 import type { Order } from '../types';
 
 export function Payment() {
   const { orderNo } = useParams<{ orderNo: string }>();
   const navigate = useNavigate();
+  const { routePrefix } = useEmbed();
   const [order, setOrder] = useState<Order | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +28,7 @@ export function Payment() {
         ]);
 
         if (orderData.status === 'paid') {
-          navigate(`/order/success/${orderNo}`);
+          navigate(`${routePrefix}/order/success/${orderNo}`);
           return;
         }
         setOrder(orderData);
@@ -58,7 +60,7 @@ export function Payment() {
     setPaying(true);
     try {
       await payOrder(orderNo);
-      navigate(`/order/success/${orderNo}`);
+      navigate(`${routePrefix}/order/success/${orderNo}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : '支付失败');
       setPaying(false);

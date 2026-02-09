@@ -45,3 +45,37 @@ export function getEnabledPaymentMethods(req: Request, res: Response, next: Next
     next(error);
   }
 }
+
+// Get page visibility settings (public)
+export function getPageVisibility(req: Request, res: Response, next: NextFunction): void {
+  try {
+    const settings = settingsService.getPageVisibility();
+    res.json({ settings });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Update page visibility settings (admin only)
+export function updatePageVisibility(req: Request, res: Response, next: NextFunction): void {
+  try {
+    const { sections } = req.body;
+
+    if (!sections || !Array.isArray(sections)) {
+      res.status(400).json({ error: 'sections is required and must be an array' });
+      return;
+    }
+
+    for (const section of sections) {
+      if (!section.id || !section.name || typeof section.enabled !== 'boolean') {
+        res.status(400).json({ error: 'Each section must have id, name, and enabled fields' });
+        return;
+      }
+    }
+
+    const settings = settingsService.updatePageVisibility({ sections });
+    res.json({ settings });
+  } catch (error) {
+    next(error);
+  }
+}

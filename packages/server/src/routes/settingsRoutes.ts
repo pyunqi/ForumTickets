@@ -13,4 +13,10 @@ router.get('/admin/payment', authMiddleware, settingsController.getPaymentSettin
 // Admin: Update payment settings
 router.put('/admin/payment', authMiddleware, settingsController.updatePaymentSettings);
 
+// Public: Get page visibility settings
+router.get('/page-visibility', settingsController.getPageVisibility);
+
+// Admin: Update page visibility settings
+router.put('/admin/page-visibility', authMiddleware, settingsController.updatePageVisibility);
+
 export default router;

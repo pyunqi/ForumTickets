@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { createOrder } from '../api/orders';
 import { getTickets } from '../api/tickets';
+import { useEmbed } from '../context/EmbedContext';
 import type { TicketType } from '../types';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -17,6 +18,7 @@ interface Attendee {
 export function OrderForm() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { routePrefix } = useEmbed();
   const selectedTicket = location.state?.ticket as TicketType | undefined;
 
   const [tickets, setTickets] = useState<TicketType[]>([]);
@@ -105,7 +107,7 @@ export function OrderForm() {
           ticketTypeId: a.ticketTypeId,
         })),
       });
-      navigate(`/payment/${order.order_no}`);
+      navigate(`${routePrefix}/payment/${order.order_no}`);
     } catch (err) {
       setErrors({ submit: err instanceof Error ? err.message : '提交失败' });
     } finally {

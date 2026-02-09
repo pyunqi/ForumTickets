@@ -1,11 +1,24 @@
 import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { useEmbed } from '../context/EmbedContext';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
+  const { isEmbed } = useEmbed();
+
+  if (isEmbed) {
+    return (
+      <div className="min-h-screen bg-[#faf8f5]">
+        <main className="max-w-7xl mx-auto px-4 py-8">
+          {children}
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#faf8f5]">
       <header className="bg-[#1a365d] shadow-lg">

@@ -72,3 +72,52 @@ export function getEnabledPaymentMethods(): PaymentMethod[] {
   const settings = getPaymentSettings();
   return settings.methods.filter(m => m.enabled);
 }
+
+// ===== Page Visibility Settings =====
+
+export interface PageSection {
+  id: string;
+  name: string;
+  enabled: boolean;
+}
+
+export interface PageVisibility {
+  sections: PageSection[];
+}
+
+const DEFAULT_PAGE_VISIBILITY: PageVisibility = {
+  sections: [
+    { id: 'about', name: '关于论坛', enabled: true },
+    { id: 'speakers', name: '演讲嘉宾', enabled: true },
+    { id: 'schedule', name: '会议日程', enabled: true },
+    { id: 'sponsors', name: '赞助商', enabled: true },
+    { id: 'tickets', name: '票务注册', enabled: true },
+    { id: 'cta', name: '报名引导', enabled: true },
+  ]
+};
+
+export function getPageVisibility(): PageVisibility {
+  const db = getDatabase();
+  const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('page_visibility') as { value: string } | undefined;
+
+  if (row) {
+    try {
+      return JSON.parse(row.value);
+    } catch {
+      return DEFAULT_PAGE_VISIBILITY;
+    }
+  }
+
+  // Initialize with default settings
+  db.prepare('INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)')
+    .run('page_visibility', JSON.stringify(DEFAULT_PAGE_VISIBILITY));
+
+  return DEFAULT_PAGE_VISIBILITY;
+}
+
+export function updatePageVisibility(settings: PageVisibility): PageVisibility {
+  const db = getDatabase();
+  db.prepare('INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)')
+    .run('page_visibility', JSON.stringify(settings));
+  return settings;
+}
