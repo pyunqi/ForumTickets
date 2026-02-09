@@ -79,3 +79,42 @@ export function updatePageVisibility(req: Request, res: Response, next: NextFunc
     next(error);
   }
 }
+
+// Get homepage content (public)
+export function getHomepageContent(_req: Request, res: Response, next: NextFunction): void {
+  try {
+    const content = settingsService.getHomepageContent();
+    res.json({ content });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Update homepage content (admin only)
+export function updateHomepageContent(req: Request, res: Response, next: NextFunction): void {
+  try {
+    const { stats, speakers, schedule, footer, hero, about, sectionTitles, cta, footerText } = req.body;
+
+    if (!stats || !Array.isArray(stats)) {
+      res.status(400).json({ error: 'stats is required and must be an array' });
+      return;
+    }
+    if (!speakers || !Array.isArray(speakers)) {
+      res.status(400).json({ error: 'speakers is required and must be an array' });
+      return;
+    }
+    if (!schedule || !schedule.day1 || !schedule.day2) {
+      res.status(400).json({ error: 'schedule with day1 and day2 is required' });
+      return;
+    }
+    if (!footer || !footer.organizers || !footer.contact) {
+      res.status(400).json({ error: 'footer with organizers and contact is required' });
+      return;
+    }
+
+    const content = settingsService.updateHomepageContent({ stats, speakers, schedule, footer, hero, about, sectionTitles, cta, footerText });
+    res.json({ content });
+  } catch (error) {
+    next(error);
+  }
+}

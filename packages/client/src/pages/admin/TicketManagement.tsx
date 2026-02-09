@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getTicketsAdmin, createTicket, updateTicket, deleteTicket } from '../../api/admin';
 import type { TicketType } from '../../types';
+import { getCurrencySymbol, SUPPORTED_CURRENCIES } from '../../utils/currency';
 
 export function TicketManagement() {
   const { admin: currentAdmin } = useAuth();
@@ -13,7 +14,9 @@ export function TicketManagement() {
     name: '',
     description: '',
     price: 0,
+    currency: 'CNY',
     quota: -1,
+    sort_order: 0,
     is_active: 1,
   });
   const [error, setError] = useState('');
@@ -38,7 +41,7 @@ export function TicketManagement() {
 
   const openCreateModal = () => {
     setEditingTicket(null);
-    setFormData({ name: '', description: '', price: 0, quota: -1, is_active: 1 });
+    setFormData({ name: '', description: '', price: 0, currency: 'CNY', quota: -1, sort_order: 0, is_active: 1 });
     setError('');
     setShowModal(true);
   };
@@ -49,7 +52,9 @@ export function TicketManagement() {
       name: ticket.name,
       description: ticket.description || '',
       price: ticket.price,
+      currency: ticket.currency || 'CNY',
       quota: ticket.quota,
+      sort_order: ticket.sort_order ?? 0,
       is_active: ticket.is_active,
     });
     setError('');
@@ -133,6 +138,7 @@ export function TicketManagement() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">价格</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">库存</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">已售</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">权重</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">状态</th>
               {isSuperAdmin && (
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
@@ -149,13 +155,16 @@ export function TicketManagement() {
                   {ticket.description || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  ¥{ticket.price.toFixed(2)}
+                  {getCurrencySymbol(ticket.currency)}{ticket.price.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {ticket.quota === -1 ? '不限' : ticket.quota}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {ticket.sold_count}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {ticket.sort_order ?? 0}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <span className={`px-2 py-1 rounded text-xs ${
@@ -192,7 +201,7 @@ export function TicketManagement() {
             ))}
             {tickets.length === 0 && (
               <tr>
-                <td colSpan={isSuperAdmin ? 7 : 6} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={isSuperAdmin ? 8 : 7} className="px-6 py-8 text-center text-gray-500">
                   暂无票种数据
                 </td>
               </tr>
@@ -255,6 +264,23 @@ export function TicketManagement() {
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  货币 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.currency}
+                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {SUPPORTED_CURRENCIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c} ({getCurrencySymbol(c)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   库存 <span className="text-gray-400">(-1 表示不限)</span>
                 </label>
                 <input
@@ -262,6 +288,19 @@ export function TicketManagement() {
                   min="-1"
                   value={formData.quota}
                   onChange={(e) => setFormData({ ...formData, quota: parseInt(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  权重 <span className="text-gray-400">(数字越小越靠前)</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.sort_order}
+                  onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>

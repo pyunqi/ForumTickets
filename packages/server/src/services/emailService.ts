@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { config } from '../config';
 import { OrderWithTicket, AttendeeInfo } from './orderService';
+import { getCurrencySymbol } from '../utils/currency';
 
 const transporter = nodemailer.createTransport({
   host: config.email.host,
@@ -13,6 +14,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendOrderConfirmationEmail(order: OrderWithTicket): Promise<void> {
+  const currencySymbol = getCurrencySymbol(order.currency);
   let attendeesHtml = '';
   let attendeesText = '';
 
@@ -33,13 +35,13 @@ export async function sendOrderConfirmationEmail(order: OrderWithTicket): Promis
               <tr>
                 <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">${a.name}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">${a.ticketName}</td>
-                <td style="padding: 12px; text-align: right; border-bottom: 1px solid #dee2e6;">¥${a.ticketPrice?.toFixed(2)}</td>
+                <td style="padding: 12px; text-align: right; border-bottom: 1px solid #dee2e6;">${getCurrencySymbol(a.currency)}${a.ticketPrice?.toFixed(2)}</td>
               </tr>
             `).join('')}
           </tbody>
         </table>
       `;
-      attendeesText = attendees.map(a => `  - ${a.name}: ${a.ticketName} (¥${a.ticketPrice?.toFixed(2)})`).join('\n');
+      attendeesText = attendees.map(a => `  - ${a.name}: ${a.ticketName} (${getCurrencySymbol(a.currency)}${a.ticketPrice?.toFixed(2)})`).join('\n');
     } catch (e) {
       // Fallback to basic info
     }
@@ -83,7 +85,7 @@ export async function sendOrderConfirmationEmail(order: OrderWithTicket): Promis
       <h3>参会人信息 / Attendee Information</h3>
       ${attendeesHtml || `<p>${order.customer_name}</p>`}
 
-      <p class="total">总计 / Total: ¥${order.total_amount.toFixed(2)}</p>
+      <p class="total">总计 / Total: ${currencySymbol}${order.total_amount.toFixed(2)}</p>
 
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #dee2e6;">
 
@@ -124,7 +126,7 @@ Thank you for your registration! Your order has been paid successfully.
 ----------------------------
 ${attendeesText || order.customer_name}
 
-总计 / Total: ¥${order.total_amount.toFixed(2)}
+总计 / Total: ${currencySymbol}${order.total_amount.toFixed(2)}
 
 会议信息 / Conference Information
 ----------------------------

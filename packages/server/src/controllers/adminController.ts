@@ -20,6 +20,7 @@ import {
   updateTicketType,
   deleteTicketType,
 } from '../services/ticketService';
+import { getCurrencySymbol } from '../utils/currency';
 
 export function getAdmins(_req: AuthRequest, res: Response, next: NextFunction): void {
   try {
@@ -99,7 +100,7 @@ export function exportOrders(req: AuthRequest, res: Response, next: NextFunction
     const status = req.query.status as string | undefined;
     const orders = getAllOrdersForExport(status);
 
-    const csvHeader = '订单号,客户姓名,客户邮箱,联系电话,票种,数量,总金额,状态,支付时间,创建时间\n';
+    const csvHeader = '订单号,客户姓名,客户邮箱,联系电话,票种,数量,货币,总金额,状态,支付时间,创建时间\n';
     const csvRows = orders.map((o: OrderWithTicket) => {
       const statusMap: Record<string, string> = {
         pending: '待支付',
@@ -113,7 +114,8 @@ export function exportOrders(req: AuthRequest, res: Response, next: NextFunction
         o.customer_phone || '',
         o.ticket_name,
         o.quantity,
-        o.total_amount.toFixed(2),
+        o.currency || 'CNY',
+        `${getCurrencySymbol(o.currency)}${o.total_amount.toFixed(2)}`,
         statusMap[o.status] || o.status,
         o.paid_at || '',
         o.created_at,
@@ -142,7 +144,7 @@ export function getTickets(_req: AuthRequest, res: Response, next: NextFunction)
 
 export function createTicketHandler(req: AuthRequest, res: Response, next: NextFunction): void {
   try {
-    const { name, description, price, quota, is_active } = req.body;
+    const { name, description, price, currency, quota, sort_order, is_active } = req.body;
 
     if (!name || !name.trim()) {
       res.status(400).json({ error: '请填写票种名称' });
@@ -163,7 +165,9 @@ export function createTicketHandler(req: AuthRequest, res: Response, next: NextF
       name: name.trim(),
       description: description?.trim(),
       price,
+      currency,
       quota,
+      sort_order,
       is_active,
     });
     res.status(201).json({ ticket });
@@ -175,7 +179,7 @@ export function createTicketHandler(req: AuthRequest, res: Response, next: NextF
 export function updateTicketHandler(req: AuthRequest, res: Response, next: NextFunction): void {
   try {
     const id = parseInt(req.params.id, 10);
-    const { name, description, price, quota, is_active } = req.body;
+    const { name, description, price, currency, quota, sort_order, is_active } = req.body;
 
     if (price !== undefined && price < 0) {
       res.status(400).json({ error: '价格不能为负数' });
@@ -186,7 +190,9 @@ export function updateTicketHandler(req: AuthRequest, res: Response, next: NextF
       name: name?.trim(),
       description: description?.trim(),
       price,
+      currency,
       quota,
+      sort_order,
       is_active,
     });
     res.json({ ticket });

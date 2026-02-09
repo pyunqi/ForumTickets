@@ -1,4 +1,6 @@
 import type { TicketType } from '../types';
+import { useLanguage } from '../i18n';
+import { getCurrencySymbol } from '../utils/currency';
 
 interface TicketCardProps {
   ticket: TicketType;
@@ -6,9 +8,10 @@ interface TicketCardProps {
 }
 
 export function TicketCard({ ticket, onSelect }: TicketCardProps) {
+  const { t } = useLanguage();
   const remainingCount = ticket.quota === -1 ? -1 : ticket.quota - ticket.sold_count;
   const isSoldOut = ticket.quota !== -1 && remainingCount <= 0;
-  const remaining = ticket.quota === -1 ? '不限' : remainingCount;
+  const remaining = ticket.quota === -1 ? t.tickets.unlimited : remainingCount;
 
   return (
     <div className={`bg-white rounded shadow-md border-t-4 transition-all ${
@@ -22,12 +25,12 @@ export function TicketCard({ ticket, onSelect }: TicketCardProps) {
         <div className="flex justify-between items-baseline mb-6">
           <div>
             <span className="text-3xl font-serif font-bold text-[#7b2c3a]">
-              ¥{ticket.price.toFixed(0)}
+              {getCurrencySymbol(ticket.currency)}{ticket.price.toFixed(0)}
             </span>
-            <span className="text-gray-400 text-sm ml-1">/人</span>
+            <span className="text-gray-400 text-sm ml-1">{t.tickets.perPerson}</span>
           </div>
           <span className={`text-sm ${isSoldOut ? 'text-red-500' : 'text-gray-500'}`}>
-            {isSoldOut ? '名额已满' : `剩余名额: ${remaining}`}
+            {isSoldOut ? t.tickets.soldOut : `${t.tickets.remaining}: ${remaining}`}
           </span>
         </div>
         <button
@@ -39,7 +42,7 @@ export function TicketCard({ ticket, onSelect }: TicketCardProps) {
               : 'bg-[#1a365d] text-white hover:bg-[#234876]'
           }`}
         >
-          {isSoldOut ? '名额已满' : '立即报名'}
+          {isSoldOut ? t.tickets.soldOut : t.tickets.register}
         </button>
       </div>
     </div>

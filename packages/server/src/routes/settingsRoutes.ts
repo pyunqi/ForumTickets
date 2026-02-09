@@ -19,4 +19,10 @@ router.get('/page-visibility', settingsController.getPageVisibility);
 // Admin: Update page visibility settings
 router.put('/admin/page-visibility', authMiddleware, settingsController.updatePageVisibility);
 
+// Public: Get homepage content
+router.get('/homepage-content', settingsController.getHomepageContent);
+
+// Admin: Update homepage content
+router.put('/admin/homepage-content', authMiddleware, settingsController.updateHomepageContent);
+
 export default router;

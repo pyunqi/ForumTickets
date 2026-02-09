@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { TicketCard } from '../components/TicketCard';
 import { getTickets } from '../api/tickets';
 import { getSponsors, SponsorsGrouped, Sponsor } from '../api/sponsors';
-import { getPageVisibility, PageVisibility } from '../api/settings';
+import { getPageVisibility, PageVisibility, getHomepageContent, HomepageContent } from '../api/settings';
 import { useLanguage } from '../i18n';
 import type { TicketType } from '../types';
 
@@ -11,6 +11,7 @@ export function Home() {
   const [tickets, setTickets] = useState<TicketType[]>([]);
   const [sponsors, setSponsors] = useState<SponsorsGrouped | null>(null);
   const [pageVisibility, setPageVisibility] = useState<PageVisibility | null>(null);
+  const [homepageContent, setHomepageContent] = useState<HomepageContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -19,14 +20,16 @@ export function Home() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [ticketsData, sponsorsData, visibilityData] = await Promise.all([
+        const [ticketsData, sponsorsData, visibilityData, contentData] = await Promise.all([
           getTickets(),
           getSponsors(),
-          getPageVisibility()
+          getPageVisibility(),
+          getHomepageContent()
         ]);
         setTickets(ticketsData);
         setSponsors(sponsorsData);
         setPageVisibility(visibilityData);
+        setHomepageContent(contentData);
       } catch {
         // ignore
       } finally {
@@ -105,6 +108,9 @@ export function Home() {
     );
   };
 
+  const l = (zh: string, en: string) => language === 'en' ? en : zh;
+  const hc = homepageContent;
+
   const isSectionVisible = (sectionId: string): boolean => {
     if (!pageVisibility) return true;
     const section = pageVisibility.sections.find(s => s.id === sectionId);
@@ -116,7 +122,7 @@ export function Home() {
       {/* Navigation */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#1a365d]/95 backdrop-blur-sm shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <span className="text-lg md:text-xl font-serif font-bold text-[#c9a227]">{t.footer.forumName}</span>
+          <span className="text-lg md:text-xl font-serif font-bold text-[#c9a227]">{hc ? l(hc.footerText.forumName_zh, hc.footerText.forumName_en) : t.footer.forumName}</span>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
@@ -193,18 +199,18 @@ export function Home() {
 
           <div className="mb-6">
             <span className="inline-block px-6 py-2 border border-[#c9a227]/50 text-[#c9a227] text-sm font-medium tracking-wider">
-              {t.hero.date} · {t.hero.venue}
+              {hc ? l(hc.hero.date_zh, hc.hero.date_en) : t.hero.date} · {hc ? l(hc.hero.venue_zh, hc.hero.venue_en) : t.hero.venue}
             </span>
           </div>
 
           <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4 leading-tight tracking-wide">
-            {t.hero.title}
+            {hc ? l(hc.hero.title_zh, hc.hero.title_en) : t.hero.title}
           </h1>
           <h2 className="text-2xl md:text-3xl font-serif text-[#c9a227] mb-8">
-            {t.hero.subtitle}
+            {hc ? l(hc.hero.subtitle_zh, hc.hero.subtitle_en) : t.hero.subtitle}
           </h2>
           <p className="text-lg text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-            {t.hero.description}
+            {hc ? l(hc.hero.description_zh, hc.hero.description_en) : t.hero.description}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -227,24 +233,16 @@ export function Home() {
           </div>
 
           {/* Stats */}
+          {homepageContent && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-3xl mx-auto pt-8 border-t border-white/10">
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl font-serif font-bold text-[#c9a227]">30+</div>
-              <div className="text-gray-400 text-xs md:text-sm mt-1">{t.hero.stats.reports}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl font-serif font-bold text-[#c9a227]">50+</div>
-              <div className="text-gray-400 text-xs md:text-sm mt-1">{t.hero.stats.papers}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl font-serif font-bold text-[#c9a227]">200+</div>
-              <div className="text-gray-400 text-xs md:text-sm mt-1">{t.hero.stats.scholars}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl font-serif font-bold text-[#c9a227]">15</div>
-              <div className="text-gray-400 text-xs md:text-sm mt-1">{t.hero.stats.universities}</div>
-            </div>
+            {homepageContent.stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="text-2xl md:text-3xl font-serif font-bold text-[#c9a227]">{stat.value}</div>
+                <div className="text-gray-400 text-xs md:text-sm mt-1">{language === 'en' ? stat.label_en : stat.label_zh}</div>
+              </div>
+            ))}
           </div>
+          )}
         </div>
 
         {/* Scroll Indicator */}
@@ -260,50 +258,73 @@ export function Home() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{t.about.label}</span>
+              <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{hc ? l(hc.about.label_zh, hc.about.label_en) : t.about.label}</span>
               <h2 className="text-3xl font-serif font-bold text-[#1a365d] mt-3 mb-6 whitespace-pre-line">
-                {t.about.title}
+                {hc ? l(hc.about.title_zh, hc.about.title_en) : t.about.title}
               </h2>
               <p className="text-gray-600 leading-relaxed mb-6">
-                {t.about.description1}
+                {hc ? l(hc.about.description1_zh, hc.about.description1_en) : t.about.description1}
               </p>
               <p className="text-gray-600 leading-relaxed mb-8">
-                {t.about.description2}
+                {hc ? l(hc.about.description2_zh, hc.about.description2_en) : t.about.description2}
               </p>
               <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-[#1a365d]/10 rounded flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-[#1a365d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-[#1a365d]">{t.about.features.research.title}</h4>
-                    <p className="text-gray-500 text-sm">{t.about.features.research.desc}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-[#1a365d]/10 rounded flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-[#1a365d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-[#1a365d]">{t.about.features.network.title}</h4>
-                    <p className="text-gray-500 text-sm">{t.about.features.network.desc}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-[#1a365d]/10 rounded flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-[#1a365d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-[#1a365d]">{t.about.features.publish.title}</h4>
-                    <p className="text-gray-500 text-sm">{t.about.features.publish.desc}</p>
-                  </div>
-                </div>
+                {hc ? hc.about.features.map((feature, index) => {
+                  const icons = [
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />,
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />,
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />,
+                  ];
+                  return (
+                    <div key={index} className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-[#1a365d]/10 rounded flex items-center justify-center shrink-0">
+                        <svg className="w-6 h-6 text-[#1a365d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          {icons[index % icons.length]}
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-[#1a365d]">{l(feature.title_zh, feature.title_en)}</h4>
+                        <p className="text-gray-500 text-sm">{l(feature.desc_zh, feature.desc_en)}</p>
+                      </div>
+                    </div>
+                  );
+                }) : (
+                  <>
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-[#1a365d]/10 rounded flex items-center justify-center shrink-0">
+                        <svg className="w-6 h-6 text-[#1a365d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-[#1a365d]">{t.about.features.research.title}</h4>
+                        <p className="text-gray-500 text-sm">{t.about.features.research.desc}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-[#1a365d]/10 rounded flex items-center justify-center shrink-0">
+                        <svg className="w-6 h-6 text-[#1a365d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-[#1a365d]">{t.about.features.network.title}</h4>
+                        <p className="text-gray-500 text-sm">{t.about.features.network.desc}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-[#1a365d]/10 rounded flex items-center justify-center shrink-0">
+                        <svg className="w-6 h-6 text-[#1a365d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-[#1a365d]">{t.about.features.publish.title}</h4>
+                        <p className="text-gray-500 text-sm">{t.about.features.publish.desc}</p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             <div className="relative">
@@ -314,7 +335,7 @@ export function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                   </div>
-                  <p className="text-xl font-serif">{t.hero.venue}</p>
+                  <p className="text-xl font-serif">{hc ? l(hc.hero.venue_zh, hc.hero.venue_en) : t.hero.venue}</p>
                 </div>
               </div>
               <div className="absolute -bottom-4 -right-4 w-full h-full border-2 border-[#c9a227] rounded -z-10"></div>
@@ -327,20 +348,16 @@ export function Home() {
       {isSectionVisible('speakers') && <section id="speakers" className="py-24 bg-[#faf8f5] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{t.speakers.label}</span>
-            <h2 className="text-3xl font-serif font-bold text-[#1a365d] mt-3">{t.speakers.title}</h2>
+            <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{hc ? l(hc.sectionTitles.speakers.label_zh, hc.sectionTitles.speakers.label_en) : t.speakers.label}</span>
+            <h2 className="text-3xl font-serif font-bold text-[#1a365d] mt-3">{hc ? l(hc.sectionTitles.speakers.title_zh, hc.sectionTitles.speakers.title_en) : t.speakers.title}</h2>
             <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
-              {t.speakers.description}
+              {hc ? l(hc.sectionTitles.speakers.description_zh, hc.sectionTitles.speakers.description_en) : t.speakers.description}
             </p>
           </div>
 
+          {homepageContent && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-            {[
-              { name_zh: '张明远', name_en: 'Prof. Zhang', title_zh: '教授、博士生导师', title_en: 'Professor', org_zh: '新西兰教科文中心', org_en: 'NZ Education Centre', field_zh: '数字人文', field_en: 'Digital Humanities' },
-              { name_zh: '李思琪', name_en: 'Dr. Li', title_zh: '教授', title_en: 'Professor', org_zh: '奥克兰大学', org_en: 'University of Auckland', field_zh: '计算语言学', field_en: 'Computational Linguistics' },
-              { name_zh: 'Prof. Smith', name_en: 'Prof. Smith', title_zh: 'Professor', title_en: 'Professor', org_zh: '哈佛大学', org_en: 'Harvard University', field_zh: 'Digital Humanities', field_en: 'Digital Humanities' },
-              { name_zh: '陈雨婷', name_en: 'Dr. Chen', title_zh: '研究员', title_en: 'Researcher', org_zh: '国际研究院', org_en: 'International Research Institute', field_zh: '计算社会科学', field_en: 'Computational Social Science' },
-            ].map((speaker, index) => (
+            {homepageContent.speakers.map((speaker, index) => (
               <div key={index} className="bg-white rounded p-8 shadow-md hover:shadow-lg transition-shadow text-center border-t-4 border-[#1a365d]">
                 <div className="w-20 h-20 mx-auto rounded-full bg-[#1a365d] flex items-center justify-center text-[#c9a227] text-2xl font-serif font-bold mb-4">
                   {(language === 'en' ? speaker.name_en : speaker.name_zh)[0]}
@@ -362,6 +379,7 @@ export function Home() {
               </div>
             ))}
           </div>
+          )}
         </div>
       </section>}
 
@@ -369,25 +387,19 @@ export function Home() {
       {isSectionVisible('schedule') && <section id="schedule" className="py-24 bg-white scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{t.schedule.label}</span>
-            <h2 className="text-3xl font-serif font-bold text-[#1a365d] mt-3">{t.schedule.title}</h2>
+            <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{hc ? l(hc.sectionTitles.schedule.label_zh, hc.sectionTitles.schedule.label_en) : t.schedule.label}</span>
+            <h2 className="text-3xl font-serif font-bold text-[#1a365d] mt-3">{hc ? l(hc.sectionTitles.schedule.title_zh, hc.sectionTitles.schedule.title_en) : t.schedule.title}</h2>
           </div>
 
           <div className="max-w-4xl mx-auto">
+            {homepageContent && (<>
             {/* Day 1 */}
             <div className="mb-12">
               <h3 className="text-xl font-serif font-semibold text-[#1a365d] mb-6 pb-2 border-b-2 border-[#c9a227]">
-                {t.schedule.day1}
+                {hc ? l(hc.sectionTitles.schedule.day1_zh, hc.sectionTitles.schedule.day1_en) : t.schedule.day1}
               </h3>
               <div className="space-y-4">
-                {[
-                  { time: '08:30 - 09:00', title_zh: '注册签到', title_en: 'Registration', desc_zh: '领取会议资料、参会证件', desc_en: 'Collect conference materials and badges' },
-                  { time: '09:00 - 09:30', title_zh: '开幕式', title_en: 'Opening Ceremony', desc_zh: '大会主席致辞、领导讲话', desc_en: 'Welcome speeches by organizers' },
-                  { time: '09:30 - 12:00', title_zh: '主旨报告（上午场）', title_en: 'Keynote (Morning)', desc_zh: 'AI与人文学科的融合创新', desc_en: 'AI and Humanities Integration' },
-                  { time: '12:00 - 14:00', title_zh: '午餐', title_en: 'Lunch', desc_zh: '学者交流午宴', desc_en: 'Networking lunch' },
-                  { time: '14:00 - 17:30', title_zh: '分论坛A', title_en: 'Panel A', desc_zh: '数字人文与文化遗产保护', desc_en: 'Digital Humanities and Cultural Heritage' },
-                  { time: '18:00 - 20:00', title_zh: '欢迎晚宴', title_en: 'Welcome Dinner', desc_zh: '学术交流与社交活动', desc_en: 'Academic networking event' },
-                ].map((item, index) => (
+                {homepageContent.schedule.day1.map((item, index) => (
                   <div key={index} className="flex flex-col sm:flex-row gap-2 sm:gap-6">
                     <div className="sm:w-36 shrink-0 sm:text-right">
                       <span className="text-[#7b2c3a] font-mono text-xs sm:text-sm">{item.time}</span>
@@ -405,16 +417,10 @@ export function Home() {
             {/* Day 2 */}
             <div>
               <h3 className="text-xl font-serif font-semibold text-[#1a365d] mb-6 pb-2 border-b-2 border-[#c9a227]">
-                {t.schedule.day2}
+                {hc ? l(hc.sectionTitles.schedule.day2_zh, hc.sectionTitles.schedule.day2_en) : t.schedule.day2}
               </h3>
               <div className="space-y-4">
-                {[
-                  { time: '09:00 - 12:00', title_zh: '主旨报告（下午场）', title_en: 'Keynote (Morning)', desc_zh: '计算社会科学的前沿进展', desc_en: 'Frontiers in Computational Social Science' },
-                  { time: '12:00 - 14:00', title_zh: '午餐', title_en: 'Lunch', desc_zh: '自由交流', desc_en: 'Free networking' },
-                  { time: '14:00 - 16:30', title_zh: '分论坛B', title_en: 'Panel B', desc_zh: '智能教育与学习科学', desc_en: 'AI in Education and Learning Science' },
-                  { time: '16:30 - 17:30', title_zh: '圆桌论坛', title_en: 'Roundtable', desc_zh: '跨学科合作的机遇与挑战', desc_en: 'Opportunities and Challenges in Interdisciplinary Collaboration' },
-                  { time: '17:30 - 18:00', title_zh: '闭幕式', title_en: 'Closing Ceremony', desc_zh: '优秀论文颁奖、闭幕致辞', desc_en: 'Best Paper Awards and Closing Remarks' },
-                ].map((item, index) => (
+                {homepageContent.schedule.day2.map((item, index) => (
                   <div key={index} className="flex flex-col sm:flex-row gap-2 sm:gap-6">
                     <div className="sm:w-36 shrink-0 sm:text-right">
                       <span className="text-[#7b2c3a] font-mono text-xs sm:text-sm">{item.time}</span>
@@ -428,6 +434,7 @@ export function Home() {
                 ))}
               </div>
             </div>
+            </>)}
           </div>
         </div>
       </section>}
@@ -436,10 +443,10 @@ export function Home() {
       {isSectionVisible('sponsors') && <section id="sponsors" className="py-24 bg-[#faf8f5] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{t.sponsors.label}</span>
-            <h2 className="text-3xl font-serif font-bold text-[#1a365d] mt-3">{t.sponsors.title}</h2>
+            <span className="text-[#7b2c3a] font-medium text-sm uppercase tracking-widest">{hc ? l(hc.sectionTitles.sponsors.label_zh, hc.sectionTitles.sponsors.label_en) : t.sponsors.label}</span>
+            <h2 className="text-3xl font-serif font-bold text-[#1a365d] mt-3">{hc ? l(hc.sectionTitles.sponsors.title_zh, hc.sectionTitles.sponsors.title_en) : t.sponsors.title}</h2>
             <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
-              {t.sponsors.description}
+              {hc ? l(hc.sectionTitles.sponsors.description_zh, hc.sectionTitles.sponsors.description_en) : t.sponsors.description}
             </p>
           </div>
 
@@ -459,10 +466,10 @@ export function Home() {
       {isSectionVisible('tickets') && <section id="tickets" className="py-24 bg-[#1a365d] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <span className="text-[#c9a227] font-medium text-sm uppercase tracking-widest">{t.tickets.label}</span>
-            <h2 className="text-3xl font-serif font-bold text-white mt-3">{t.tickets.title}</h2>
+            <span className="text-[#c9a227] font-medium text-sm uppercase tracking-widest">{hc ? l(hc.sectionTitles.tickets.label_zh, hc.sectionTitles.tickets.label_en) : t.tickets.label}</span>
+            <h2 className="text-3xl font-serif font-bold text-white mt-3">{hc ? l(hc.sectionTitles.tickets.title_zh, hc.sectionTitles.tickets.title_en) : t.tickets.title}</h2>
             <p className="text-gray-300 mt-4 max-w-2xl mx-auto">
-              {t.tickets.description}
+              {hc ? l(hc.sectionTitles.tickets.description_zh, hc.sectionTitles.tickets.description_en) : t.tickets.description}
             </p>
           </div>
 
@@ -490,16 +497,16 @@ export function Home() {
             </svg>
           </div>
           <h2 className="text-3xl font-serif font-bold text-[#1a365d] mb-6">
-            {t.cta.title}
+            {hc ? l(hc.cta.title_zh, hc.cta.title_en) : t.cta.title}
           </h2>
           <p className="text-lg text-gray-600 mb-10">
-            {t.cta.description}
+            {hc ? l(hc.cta.description_zh, hc.cta.description_en) : t.cta.description}
           </p>
           <button
             onClick={scrollToTickets}
             className="px-12 py-4 bg-[#1a365d] text-white font-semibold rounded hover:bg-[#234876] transition-all shadow-lg"
           >
-            {t.cta.button}
+            {hc ? l(hc.cta.button_zh, hc.cta.button_en) : t.cta.button}
           </button>
         </div>
       </section>}
@@ -509,8 +516,8 @@ export function Home() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h3 className="text-[#c9a227] font-serif font-bold text-lg mb-4">{t.footer.forumName}</h3>
-              <p className="text-sm text-gray-400">{t.footer.slogan}</p>
+              <h3 className="text-[#c9a227] font-serif font-bold text-lg mb-4">{hc ? l(hc.footerText.forumName_zh, hc.footerText.forumName_en) : t.footer.forumName}</h3>
+              <p className="text-sm text-gray-400">{hc ? l(hc.footerText.slogan_zh, hc.footerText.slogan_en) : t.footer.slogan}</p>
             </div>
             <div>
               <h4 className="text-white font-medium mb-4">{t.footer.info}</h4>
@@ -523,21 +530,27 @@ export function Home() {
             <div>
               <h4 className="text-white font-medium mb-4">{t.footer.organizers}</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li>{language === 'en' ? 'NZ Education Centre' : '新西兰教科文中心'}</li>
-                <li>{language === 'en' ? 'University of Auckland' : '奥克兰大学'}</li>
+                {homepageContent ? homepageContent.footer.organizers.map((org, index) => (
+                  <li key={index}>{language === 'en' ? org.name_en : org.name_zh}</li>
+                )) : (
+                  <>
+                    <li>{language === 'en' ? 'NZ Education Centre' : '新西兰教科文中心'}</li>
+                    <li>{language === 'en' ? 'University of Auckland' : '奥克兰大学'}</li>
+                  </>
+                )}
               </ul>
             </div>
             <div>
               <h4 className="text-white font-medium mb-4">{t.footer.contact}</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li>{t.footer.email}: forum2026@nzec.org</li>
-                <li>{t.footer.phone}: +64 9 123 4567</li>
-                <li>{t.footer.address}: Auckland, New Zealand</li>
+                <li>{t.footer.email}: {homepageContent?.footer.contact.email ?? 'forum2026@nzec.org'}</li>
+                <li>{t.footer.phone}: {homepageContent?.footer.contact.phone ?? '+64 9 123 4567'}</li>
+                <li>{t.footer.address}: {homepageContent?.footer.contact.address ?? 'Auckland, New Zealand'}</li>
               </ul>
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 text-center text-sm text-gray-400">
-            <p>&copy; 2026 {language === 'en' ? '12th International Academic Forum' : '第十二届国际学术论坛'}. All rights reserved.</p>
+            <p>&copy; 2026 {hc ? l(hc.footerText.copyright_zh, hc.footerText.copyright_en) : (language === 'en' ? '12th International Academic Forum' : '第十二届国际学术论坛')}. All rights reserved.</p>
           </div>
         </div>
       </footer>

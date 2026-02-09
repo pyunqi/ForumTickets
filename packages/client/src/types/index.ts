@@ -3,8 +3,10 @@ export interface TicketType {
   name: string;
   description: string | null;
   price: number;
+  currency: string;
   quota: number;
   sold_count: number;
+  sort_order: number;
   is_active: number;
   created_at: string;
 }
@@ -14,6 +16,7 @@ export interface AttendeeInfo {
   ticketTypeId: number;
   ticketName?: string;
   ticketPrice?: number;
+  currency?: string;
 }
 
 export interface Order {
@@ -25,6 +28,7 @@ export interface Order {
   ticket_type_id: number;
   quantity: number;
   total_amount: number;
+  currency?: string;
   status: 'pending' | 'paid' | 'cancelled';
   paid_at: string | null;
   created_at: string;

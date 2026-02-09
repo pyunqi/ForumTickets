@@ -4,7 +4,9 @@ import { Layout } from '../components/Layout';
 import { createOrder } from '../api/orders';
 import { getTickets } from '../api/tickets';
 import { useEmbed } from '../context/EmbedContext';
+import { useLanguage } from '../i18n';
 import type { TicketType } from '../types';
+import { getCurrencySymbol } from '../utils/currency';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_ATTENDEES = 5;
@@ -19,6 +21,7 @@ export function OrderForm() {
   const location = useLocation();
   const navigate = useNavigate();
   const { routePrefix } = useEmbed();
+  const { t } = useLanguage();
   const selectedTicket = location.state?.ticket as TicketType | undefined;
 
   const [tickets, setTickets] = useState<TicketType[]>([]);
@@ -73,19 +76,19 @@ export function OrderForm() {
     // Check all attendee names and ticket types
     for (let i = 0; i < attendees.length; i++) {
       if (!attendees[i].name.trim()) {
-        newErrors.attendees = `请填写参会者 ${i + 1} 的姓名`;
+        newErrors.attendees = t.orderForm.nameRequired.replace('{index}', String(i + 1));
         break;
       }
       if (!attendees[i].ticketTypeId) {
-        newErrors.attendees = `请选择参会者 ${i + 1} 的注册类型`;
+        newErrors.attendees = t.orderForm.typeRequired.replace('{index}', String(i + 1));
         break;
       }
     }
 
     if (!customerEmail.trim()) {
-      newErrors.customerEmail = '请填写邮箱';
+      newErrors.customerEmail = t.orderForm.emailRequired;
     } else if (!EMAIL_REGEX.test(customerEmail)) {
-      newErrors.customerEmail = '请填写有效的邮箱地址';
+      newErrors.customerEmail = t.orderForm.emailInvalid;
     }
 
     setErrors(newErrors);
@@ -109,7 +112,7 @@ export function OrderForm() {
       });
       navigate(`${routePrefix}/payment/${order.order_no}`);
     } catch (err) {
-      setErrors({ submit: err instanceof Error ? err.message : '提交失败' });
+      setErrors({ submit: err instanceof Error ? err.message : t.orderForm.submitFailed });
     } finally {
       setSubmitting(false);
     }
@@ -119,8 +122,8 @@ export function OrderForm() {
     <Layout>
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-serif font-bold text-[#1a365d] mb-2">参会注册</h1>
-          <p className="text-gray-600">一次最多可为 {MAX_ATTENDEES} 位参会者注册</p>
+          <h1 className="text-3xl font-serif font-bold text-[#1a365d] mb-2">{t.orderForm.title}</h1>
+          <p className="text-gray-600">{t.orderForm.maxAttendeesHint.replace('{max}', String(MAX_ATTENDEES))}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -128,8 +131,8 @@ export function OrderForm() {
           <div className="bg-white rounded shadow-md p-6 border-t-4 border-[#1a365d]">
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h2 className="text-lg font-serif font-medium text-[#1a365d]">参会者信息</h2>
-                <p className="text-sm text-gray-500">已添加 {attendees.length} / {MAX_ATTENDEES} 人</p>
+                <h2 className="text-lg font-serif font-medium text-[#1a365d]">{t.orderForm.attendeeInfo}</h2>
+                <p className="text-sm text-gray-500">{t.orderForm.addedCount.replace('{count}', String(attendees.length)).replace('{max}', String(MAX_ATTENDEES))}</p>
               </div>
               {attendees.length < MAX_ATTENDEES && (
                 <button
@@ -140,7 +143,7 @@ export function OrderForm() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
-                  添加参会者
+                  {t.form.addAttendee}
                 </button>
               )}
             </div>
@@ -159,7 +162,7 @@ export function OrderForm() {
                   >
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-medium text-[#1a365d]">
-                        参会者 {index + 1}
+                        {t.orderForm.attendeeIndex.replace('{index}', String(index + 1))}
                       </span>
                       {attendees.length > 1 && (
                         <button
@@ -170,24 +173,24 @@ export function OrderForm() {
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
-                          移除
+                          {t.form.remove}
                         </button>
                       )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs text-gray-500 mb-1">姓名</label>
+                        <label className="block text-xs text-gray-500 mb-1">{t.form.name}</label>
                         <input
                           type="text"
                           value={attendee.name}
                           onChange={(e) => updateAttendee(attendee.id, 'name', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#1a365d] focus:border-transparent text-sm"
-                          placeholder="请输入参会者姓名"
+                          placeholder={t.form.namePlaceholder}
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-500 mb-1">注册类型</label>
+                        <label className="block text-xs text-gray-500 mb-1">{t.form.registrationType}</label>
                         <select
                           value={attendee.ticketTypeId}
                           onChange={(e) => updateAttendee(attendee.id, 'ticketTypeId', parseInt(e.target.value))}
@@ -195,7 +198,7 @@ export function OrderForm() {
                         >
                           {tickets.map((t) => (
                             <option key={t.id} value={t.id}>
-                              {t.name} - ¥{t.price.toFixed(0)}
+                              {t.name} - {getCurrencySymbol(t.currency)}{t.price.toFixed(0)}
                             </option>
                           ))}
                         </select>
@@ -204,8 +207,8 @@ export function OrderForm() {
 
                     {ticket && (
                       <div className="mt-2 text-right">
-                        <span className="text-sm text-gray-500">注册费：</span>
-                        <span className="text-sm font-medium text-[#7b2c3a]">¥{ticket.price.toFixed(0)}</span>
+                        <span className="text-sm text-gray-500">{t.form.registrationFee}:</span>
+                        <span className="text-sm font-medium text-[#7b2c3a] ml-1">{getCurrencySymbol(ticket.currency)}{ticket.price.toFixed(0)}</span>
                       </div>
                     )}
                   </div>
@@ -216,18 +219,18 @@ export function OrderForm() {
 
           {/* Contact Information */}
           <div className="bg-white rounded shadow-md p-6 border-t-4 border-[#1a365d]">
-            <h2 className="text-lg font-serif font-medium text-[#1a365d] mb-4">联系信息</h2>
+            <h2 className="text-lg font-serif font-medium text-[#1a365d] mb-4">{t.orderForm.contactInfo}</h2>
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                电子邮箱 <span className="text-[#7b2c3a]">*</span>
+                {t.form.email} <span className="text-[#7b2c3a]">*</span>
               </label>
               <input
                 type="email"
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#1a365d] focus:border-transparent"
-                placeholder="用于接收参会确认函"
+                placeholder={t.form.emailPlaceholder}
               />
               {errors.customerEmail && (
                 <p className="mt-1 text-sm text-[#7b2c3a]">{errors.customerEmail}</p>
@@ -236,36 +239,36 @@ export function OrderForm() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                联系电话 <span className="text-gray-400">(选填)</span>
+                {t.form.phone} <span className="text-gray-400">({t.form.optional})</span>
               </label>
               <input
                 type="tel"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#1a365d] focus:border-transparent"
-                placeholder="方便会务组联系您"
+                placeholder={t.form.phonePlaceholder}
               />
             </div>
           </div>
 
           {/* Order Summary */}
           <div className="bg-white rounded shadow-md p-6 border-t-4 border-[#c9a227]">
-            <h2 className="text-lg font-serif font-medium text-[#1a365d] mb-4">费用汇总</h2>
+            <h2 className="text-lg font-serif font-medium text-[#1a365d] mb-4">{t.orderForm.feeSummary}</h2>
 
             <div className="space-y-2 text-sm mb-4">
               {attendees.map((attendee, index) => {
                 const ticket = getTicketById(attendee.ticketTypeId);
                 return (
                   <div key={attendee.id} className="flex justify-between text-gray-600">
-                    <span>{attendee.name || `参会者 ${index + 1}`} - {ticket?.name}</span>
-                    <span>¥{ticket?.price.toFixed(0)}</span>
+                    <span>{attendee.name || `${t.orderForm.attendeeIndex.replace('{index}', String(index + 1))}`} - {ticket?.name}</span>
+                    <span>{getCurrencySymbol(ticket?.currency)}{ticket?.price.toFixed(0)}</span>
                   </div>
                 );
               })}
               <div className="flex justify-between pt-3 border-t border-gray-200">
-                <span className="text-[#1a365d] font-medium">注册费总计 ({attendees.length} 人)</span>
+                <span className="text-[#1a365d] font-medium">{t.orderForm.totalFee.replace('{count}', String(attendees.length))}</span>
                 <span className="text-2xl font-serif font-bold text-[#7b2c3a]">
-                  ¥{totalAmount.toFixed(0)}
+                  {getCurrencySymbol(getTicketById(attendees[0]?.ticketTypeId)?.currency)}{totalAmount.toFixed(0)}
                 </span>
               </div>
             </div>
@@ -281,7 +284,7 @@ export function OrderForm() {
               disabled={submitting}
               className="w-full py-3 px-4 bg-[#1a365d] text-white font-medium rounded hover:bg-[#234876] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
-              {submitting ? '提交中...' : '提交注册'}
+              {submitting ? t.orderForm.submitting : t.form.submit}
             </button>
           </div>
         </form>

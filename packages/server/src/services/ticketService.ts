@@ -5,8 +5,10 @@ export interface TicketType {
   name: string;
   description: string | null;
   price: number;
+  currency: string;
   quota: number;
   sold_count: number;
+  sort_order: number;
   is_active: number;
   created_at: string;
 }
@@ -16,7 +18,7 @@ export function getActiveTicketTypes(): TicketType[] {
   return db.prepare(`
     SELECT * FROM ticket_types
     WHERE is_active = 1
-    ORDER BY price ASC
+    ORDER BY sort_order ASC, id ASC
   `).all() as TicketType[];
 }
 
@@ -24,7 +26,7 @@ export function getAllTicketTypes(): TicketType[] {
   const db = getDatabase();
   return db.prepare(`
     SELECT * FROM ticket_types
-    ORDER BY created_at DESC
+    ORDER BY sort_order ASC, id ASC
   `).all() as TicketType[];
 }
 
@@ -53,7 +55,9 @@ export interface CreateTicketParams {
   name: string;
   description?: string;
   price: number;
+  currency?: string;
   quota: number;
+  sort_order?: number;
   is_active?: number;
 }
 
@@ -61,13 +65,15 @@ export function createTicketType(params: CreateTicketParams): TicketType {
   const db = getDatabase();
 
   const result = db.prepare(`
-    INSERT INTO ticket_types (name, description, price, quota, sold_count, is_active)
-    VALUES (?, ?, ?, ?, 0, ?)
+    INSERT INTO ticket_types (name, description, price, currency, quota, sort_order, sold_count, is_active)
+    VALUES (?, ?, ?, ?, ?, ?, 0, ?)
   `).run(
     params.name,
     params.description || null,
     params.price,
+    params.currency || 'CNY',
     params.quota,
+    params.sort_order ?? 0,
     params.is_active ?? 1
   );
 
@@ -78,7 +84,9 @@ export interface UpdateTicketParams {
   name?: string;
   description?: string;
   price?: number;
+  currency?: string;
   quota?: number;
+  sort_order?: number;
   is_active?: number;
 }
 
@@ -105,9 +113,17 @@ export function updateTicketType(id: number, params: UpdateTicketParams): Ticket
     updates.push('price = ?');
     values.push(params.price);
   }
+  if (params.currency !== undefined) {
+    updates.push('currency = ?');
+    values.push(params.currency);
+  }
   if (params.quota !== undefined) {
     updates.push('quota = ?');
     values.push(params.quota);
+  }
+  if (params.sort_order !== undefined) {
+    updates.push('sort_order = ?');
+    values.push(params.sort_order);
   }
   if (params.is_active !== undefined) {
     updates.push('is_active = ?');

@@ -84,7 +84,9 @@ export interface CreateTicketParams {
   name: string;
   description?: string;
   price: number;
+  currency?: string;
   quota: number;
+  sort_order?: number;
   is_active?: number;
 }
 
@@ -97,7 +99,9 @@ export interface UpdateTicketParams {
   name?: string;
   description?: string;
   price?: number;
+  currency?: string;
   quota?: number;
+  sort_order?: number;
   is_active?: number;
 }
 

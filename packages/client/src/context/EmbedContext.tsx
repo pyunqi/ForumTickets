@@ -1,4 +1,5 @@
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, useEffect, ReactNode } from 'react';
+import { useLanguage } from '../i18n';
 
 interface EmbedContextType {
   isEmbed: boolean;
@@ -11,6 +12,12 @@ const EmbedContext = createContext<EmbedContextType>({
 });
 
 export function EmbedProvider({ children }: { children: ReactNode }) {
+  const { setLanguage } = useLanguage();
+
+  useEffect(() => {
+    setLanguage('en');
+  }, []);
+
   return (
     <EmbedContext.Provider value={{ isEmbed: true, routePrefix: '/embed' }}>
       {children}

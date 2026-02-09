@@ -12,6 +12,7 @@ export interface Order {
   ticket_type_id: number;
   quantity: number;
   total_amount: number;
+  currency: string;
   status: 'pending' | 'paid' | 'cancelled';
   paid_at: string | null;
   created_at: string;
@@ -24,6 +25,7 @@ export interface Order {
 export interface OrderWithTicket extends Order {
   ticket_name: string;
   ticket_price: number;
+  ticket_currency?: string;
 }
 
 export interface AttendeeInfo {
@@ -31,6 +33,7 @@ export interface AttendeeInfo {
   ticketTypeId: number;
   ticketName?: string;
   ticketPrice?: number;
+  currency?: string;
 }
 
 export interface CreateOrderParams {
@@ -68,8 +71,8 @@ export function createOrder(params: CreateOrderParams | CreateOrderParamsLegacy)
     const totalAmount = ticket.price * legacyParams.quantity;
 
     const result = db.prepare(`
-      INSERT INTO orders (order_no, customer_name, customer_email, customer_phone, ticket_type_id, quantity, total_amount)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO orders (order_no, customer_name, customer_email, customer_phone, ticket_type_id, quantity, total_amount, currency)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       orderNo,
       legacyParams.customerName,
@@ -77,7 +80,8 @@ export function createOrder(params: CreateOrderParams | CreateOrderParamsLegacy)
       legacyParams.customerPhone || null,
       legacyParams.ticketTypeId,
       legacyParams.quantity,
-      totalAmount
+      totalAmount,
+      ticket.currency || 'CNY'
     );
 
     incrementSoldCount(legacyParams.ticketTypeId, legacyParams.quantity);
@@ -114,6 +118,7 @@ export function createOrder(params: CreateOrderParams | CreateOrderParamsLegacy)
       ...attendee,
       ticketName: ticket.name,
       ticketPrice: ticket.price,
+      currency: ticket.currency || 'CNY',
     });
   }
 
@@ -139,9 +144,13 @@ export function createOrder(params: CreateOrderParams | CreateOrderParamsLegacy)
   // Store detailed attendee info as JSON
   const attendeesInfo = JSON.stringify(attendeesWithTicket);
 
+  // Inherit currency from the first ticket type
+  const primaryTicket = getTicketTypeById(primaryTicketId);
+  const orderCurrency = primaryTicket?.currency || 'CNY';
+
   const result = db.prepare(`
-    INSERT INTO orders (order_no, customer_name, customer_email, customer_phone, ticket_type_id, quantity, total_amount, attendees_info)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO orders (order_no, customer_name, customer_email, customer_phone, ticket_type_id, quantity, total_amount, currency, attendees_info)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     orderNo,
     customerName,
@@ -150,6 +159,7 @@ export function createOrder(params: CreateOrderParams | CreateOrderParamsLegacy)
     primaryTicketId,
     attendees.length,
     totalAmount,
+    orderCurrency,
     attendeesInfo
   );
 

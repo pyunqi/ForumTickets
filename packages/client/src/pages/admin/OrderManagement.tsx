@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getOrders, getExportUrl, confirmPayment, verifyTransferPayment, deleteOrder } from '../../api/admin';
 import type { Order, PaginatedOrders } from '../../types';
+import { getCurrencySymbol } from '../../utils/currency';
 
 export function OrderManagement() {
   const [data, setData] = useState<PaginatedOrders | null>(null);
@@ -112,17 +113,18 @@ export function OrderManagement() {
     <div>
       {/* Verify Transfer Modal */}
       {verifyingOrder && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={handleCloseVerifyModal}>
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div className="p-6 border-b flex justify-between items-center">
               <h3 className="text-lg font-semibold">转账复核</h3>
+              <button onClick={handleCloseVerifyModal} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
             </div>
             <form onSubmit={handleVerifyTransfer} className="p-6">
               <div className="mb-4">
                 <div className="text-sm text-gray-600 mb-2">
                   <p><strong>订单号：</strong>{verifyingOrder.order_no}</p>
                   <p><strong>客户：</strong>{verifyingOrder.customer_name}</p>
-                  <p><strong>金额：</strong>¥{verifyingOrder.total_amount.toFixed(2)}</p>
+                  <p><strong>金额：</strong>{getCurrencySymbol(verifyingOrder.currency)}{verifyingOrder.total_amount.toFixed(2)}</p>
                 </div>
               </div>
               <div className="mb-6">
@@ -251,7 +253,7 @@ export function OrderManagement() {
                       {order.quantity}
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ¥{order.total_amount.toFixed(2)}
+                      {getCurrencySymbol(order.currency)}{order.total_amount.toFixed(2)}
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap text-sm">
                       <span className={`px-2 py-1 rounded text-xs ${statusMap[order.status]?.className || ''}`}>

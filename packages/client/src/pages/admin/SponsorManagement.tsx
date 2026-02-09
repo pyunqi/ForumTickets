@@ -147,12 +147,13 @@ export function SponsorManagement() {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={resetForm}>
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
+            <div className="p-6 border-b flex justify-between items-center">
               <h3 className="text-lg font-semibold">
                 {editingSponsor ? '编辑赞助商' : '添加赞助商'}
               </h3>
+              <button onClick={resetForm} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">

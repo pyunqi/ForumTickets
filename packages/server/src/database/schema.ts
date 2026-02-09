@@ -17,8 +17,10 @@ CREATE TABLE IF NOT EXISTS ticket_types (
     name VARCHAR(100) NOT NULL,
     description TEXT,
     price DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'CNY',
     quota INTEGER DEFAULT -1,
     sold_count INTEGER DEFAULT 0,
+    sort_order INTEGER DEFAULT 0,
     is_active INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -35,6 +37,7 @@ CREATE TABLE IF NOT EXISTS orders (
     total_amount DECIMAL(10, 2) NOT NULL,
     status VARCHAR(20) DEFAULT 'pending',
     attendees_info TEXT,
+    currency VARCHAR(3) DEFAULT 'CNY',
     payment_method VARCHAR(20),
     payer_bank_last4 VARCHAR(4),
     verified_by VARCHAR(50),

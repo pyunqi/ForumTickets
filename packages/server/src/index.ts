@@ -16,6 +16,22 @@ async function bootstrap() {
   const db = getDatabase();
   console.log('Database connected successfully');
 
+  // Migration: add currency column to existing tables
+  const tableInfo = db.prepare("PRAGMA table_info(ticket_types)").all() as { name: string }[];
+  if (!tableInfo.some(col => col.name === 'currency')) {
+    db.prepare("ALTER TABLE ticket_types ADD COLUMN currency VARCHAR(3) DEFAULT 'CNY'").run();
+    console.log('Migration: added currency column to ticket_types');
+  }
+  if (!tableInfo.some(col => col.name === 'sort_order')) {
+    db.prepare("ALTER TABLE ticket_types ADD COLUMN sort_order INTEGER DEFAULT 0").run();
+    console.log('Migration: added sort_order column to ticket_types');
+  }
+  const orderInfo = db.prepare("PRAGMA table_info(orders)").all() as { name: string }[];
+  if (!orderInfo.some(col => col.name === 'currency')) {
+    db.prepare("ALTER TABLE orders ADD COLUMN currency VARCHAR(3) DEFAULT 'CNY'").run();
+    console.log('Migration: added currency column to orders');
+  }
+
   // Auto-seed super admin if not exists
   const existingAdmin = db.prepare('SELECT id FROM admins WHERE role = ?').get('super_admin');
   if (!existingAdmin) {
