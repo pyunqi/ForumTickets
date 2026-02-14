@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
 import { config } from './config';
 import routes from './routes';
 import { errorHandler } from './middleware/errorHandler';
@@ -28,15 +27,6 @@ app.get('/api/health', (_req, res) => {
 
 // API routes
 app.use('/api', routes);
-
-// Serve static files from client build
-const clientDistPath = path.resolve(__dirname, '../../client/dist');
-app.use(express.static(clientDistPath));
-
-// SPA fallback: all non-API routes serve index.html
-app.get('*', (_req, res) => {
-  res.sendFile(path.join(clientDistPath, 'index.html'));
-});
 
 // Error handler
 app.use(errorHandler);
