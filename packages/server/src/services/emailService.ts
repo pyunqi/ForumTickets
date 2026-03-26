@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer';
 import { config } from '../config';
 import { OrderWithTicket, AttendeeInfo } from './orderService';
 import { getCurrencySymbol } from '../utils/currency';
+import { getActiveConference } from './conferenceService';
 
 const transporter = nodemailer.createTransport({
   host: config.email.host,
@@ -15,6 +16,7 @@ const transporter = nodemailer.createTransport({
 
 export async function sendOrderConfirmationEmail(order: OrderWithTicket): Promise<void> {
   const currencySymbol = getCurrencySymbol(order.currency);
+  const conference = getActiveConference();
   let attendeesHtml = '';
   let attendeesText = '';
 
@@ -90,8 +92,8 @@ export async function sendOrderConfirmationEmail(order: OrderWithTicket): Promis
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #dee2e6;">
 
       <h3>会议信息 / Conference Information</h3>
-      <p><strong>地点 / Venue:</strong> 新西兰教科文中心 / New Zealand UNESCO Center</p>
-      <p><strong>日期 / Date:</strong> 2026年6月15-17日 / June 15-17, 2026</p>
+      <p><strong>地点 / Venue:</strong> ${conference?.venue_zh || ''}${conference?.venue_en ? ' / ' + conference.venue_en : ''}</p>
+      <p><strong>日期 / Date:</strong> ${conference?.date_start || ''}${conference?.date_end && conference.date_end !== conference.date_start ? ' ~ ' + conference.date_end : ''}</p>
 
       <p style="margin-top: 30px;">如有任何问题，请联系我们。/ If you have any questions, please contact us.</p>
     </div>
@@ -130,8 +132,8 @@ ${attendeesText || order.customer_name}
 
 会议信息 / Conference Information
 ----------------------------
-地点 / Venue: 新西兰教科文中心 / New Zealand UNESCO Center
-日期 / Date: 2026年6月15-17日 / June 15-17, 2026
+地点 / Venue: ${conference?.venue_zh || ''}${conference?.venue_en ? ' / ' + conference.venue_en : ''}
+日期 / Date: ${conference?.date_start || ''}${conference?.date_end && conference.date_end !== conference.date_start ? ' ~ ' + conference.date_end : ''}
 
 如有任何问题，请联系我们。
 If you have any questions, please contact us.
