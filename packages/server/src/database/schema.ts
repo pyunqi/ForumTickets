@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS orders (
     verified_by VARCHAR(50),
     paid_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME DEFAULT NULL,
     FOREIGN KEY (ticket_type_id) REFERENCES ticket_types(id)
 );
 
@@ -90,4 +91,5 @@ CREATE TABLE IF NOT EXISTS conferences (
 CREATE INDEX IF NOT EXISTS idx_orders_order_no ON orders(order_no);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+CREATE INDEX IF NOT EXISTS idx_orders_deleted_at ON orders(deleted_at);
 `;

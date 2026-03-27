@@ -38,6 +38,7 @@ export interface Order {
   payment_method?: string;
   payer_bank_last4?: string;
   verified_by?: string;
+  deleted_at?: string | null;
 }
 
 export interface Admin {

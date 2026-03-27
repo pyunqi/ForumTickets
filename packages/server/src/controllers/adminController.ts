@@ -8,11 +8,15 @@ import {
 } from '../services/adminService';
 import {
   listOrders,
+  listTrashedOrders,
   getAllOrdersForExport,
   OrderWithTicket,
   payOrder,
   verifyTransferPayment,
-  deleteOrder,
+  softDeleteOrder,
+  batchSoftDeleteOrders,
+  restoreOrder,
+  hardDeleteOrder,
 } from '../services/orderService';
 import {
   getAllTicketTypes,
@@ -241,12 +245,62 @@ export async function verifyTransferHandler(req: AuthRequest, res: Response, nex
   }
 }
 
-// Delete an order
+// Soft delete an order (move to trash)
 export function deleteOrderHandler(req: AuthRequest, res: Response, next: NextFunction): void {
   try {
     const { orderNo } = req.params;
-    deleteOrder(orderNo);
-    res.json({ message: '删除成功' });
+    softDeleteOrder(orderNo);
+    res.json({ message: '已移入垃圾桶' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Batch soft delete orders
+export function batchDeleteOrdersHandler(req: AuthRequest, res: Response, next: NextFunction): void {
+  try {
+    const { orderNos } = req.body;
+    if (!Array.isArray(orderNos) || orderNos.length === 0) {
+      res.status(400).json({ error: '请提供订单号列表' });
+      return;
+    }
+    const result = batchSoftDeleteOrders(orderNos);
+    res.json({ message: `已将 ${result.deleted} 个订单移入垃圾桶`, deleted: result.deleted });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// List trashed orders
+export function getTrashedOrders(req: AuthRequest, res: Response, next: NextFunction): void {
+  try {
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const pageSize = parseInt(req.query.pageSize as string, 10) || 20;
+    const search = req.query.search as string | undefined;
+    const result = listTrashedOrders({ page, pageSize, search });
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Restore a trashed order
+export function restoreOrderHandler(req: AuthRequest, res: Response, next: NextFunction): void {
+  try {
+    const { orderNo } = req.params;
+    restoreOrder(orderNo);
+    res.json({ message: '恢复成功' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Permanently delete a trashed order
+export function hardDeleteOrderHandler(req: AuthRequest, res: Response, next: NextFunction): void {
+  try {
+    const { orderNo } = req.params;
+    hardDeleteOrder(orderNo);
+    res.json({ message: '永久删除成功' });
   } catch (error) {
     next(error);
   }

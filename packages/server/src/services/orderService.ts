@@ -16,6 +16,7 @@ export interface Order {
   status: 'pending' | 'paid' | 'cancelled';
   paid_at: string | null;
   created_at: string;
+  deleted_at: string | null;
   attendees_info?: string;
   payment_method?: string;
   payer_bank_last4?: string;
@@ -177,7 +178,7 @@ export function getOrderByNo(orderNo: string): OrderWithTicket | undefined {
     SELECT o.*, t.name as ticket_name, t.price as ticket_price
     FROM orders o
     JOIN ticket_types t ON o.ticket_type_id = t.id
-    WHERE o.order_no = ?
+    WHERE o.order_no = ? AND o.deleted_at IS NULL
   `).get(orderNo) as OrderWithTicket | undefined;
 }
 
@@ -233,7 +234,7 @@ export function listOrders(params: ListOrdersParams): ListOrdersResult {
   const { page, pageSize, status, search } = params;
   const offset = (page - 1) * pageSize;
 
-  let whereClause = '1=1';
+  let whereClause = 'o.deleted_at IS NULL';
   const queryParams: (string | number)[] = [];
 
   if (status) {
@@ -276,22 +277,107 @@ export function getAllOrdersForExport(status?: string): OrderWithTicket[] {
     SELECT o.*, t.name as ticket_name, t.price as ticket_price
     FROM orders o
     JOIN ticket_types t ON o.ticket_type_id = t.id
+    WHERE o.deleted_at IS NULL
   `;
 
   if (status) {
-    query += ' WHERE o.status = ?';
+    query += ' AND o.status = ?';
     return db.prepare(query + ' ORDER BY o.created_at DESC').all(status) as OrderWithTicket[];
   }
 
   return db.prepare(query + ' ORDER BY o.created_at DESC').all() as OrderWithTicket[];
 }
 
-export function deleteOrder(orderNo: string): void {
+export function softDeleteOrder(orderNo: string): void {
   const db = getDatabase();
   const order = getOrderByNo(orderNo);
 
   if (!order) {
     throw Object.assign(new Error('订单不存在'), { statusCode: 404 });
+  }
+
+  db.prepare('UPDATE orders SET deleted_at = CURRENT_TIMESTAMP WHERE order_no = ?').run(orderNo);
+}
+
+export function batchSoftDeleteOrders(orderNos: string[]): { deleted: number } {
+  const db = getDatabase();
+
+  if (!orderNos || orderNos.length === 0) {
+    throw Object.assign(new Error('请选择要删除的订单'), { statusCode: 400 });
+  }
+
+  if (orderNos.length > 100) {
+    throw Object.assign(new Error('单次批量操作不能超过100条'), { statusCode: 400 });
+  }
+
+  const stmt = db.prepare(
+    'UPDATE orders SET deleted_at = CURRENT_TIMESTAMP WHERE order_no = ? AND deleted_at IS NULL'
+  );
+  let deleted = 0;
+  for (const no of orderNos) {
+    const result = stmt.run(no);
+    deleted += result.changes;
+  }
+  return { deleted };
+}
+
+export function listTrashedOrders(params: ListOrdersParams): ListOrdersResult {
+  const db = getDatabase();
+  const { page, pageSize, search } = params;
+  const offset = (page - 1) * pageSize;
+
+  let whereClause = 'o.deleted_at IS NOT NULL';
+  const queryParams: (string | number)[] = [];
+
+  if (search) {
+    whereClause += ' AND (o.customer_name LIKE ? OR o.customer_email LIKE ? OR o.order_no LIKE ?)';
+    const searchPattern = `%${search}%`;
+    queryParams.push(searchPattern, searchPattern, searchPattern);
+  }
+
+  const countResult = db.prepare(`
+    SELECT COUNT(*) as count FROM orders o WHERE ${whereClause}
+  `).get(...queryParams) as { count: number };
+
+  const orders = db.prepare(`
+    SELECT o.*, t.name as ticket_name, t.price as ticket_price
+    FROM orders o
+    JOIN ticket_types t ON o.ticket_type_id = t.id
+    WHERE ${whereClause}
+    ORDER BY o.deleted_at DESC
+    LIMIT ? OFFSET ?
+  `).all(...queryParams, pageSize, offset) as OrderWithTicket[];
+
+  return {
+    orders,
+    total: countResult.count,
+    page,
+    pageSize,
+    totalPages: Math.ceil(countResult.count / pageSize),
+  };
+}
+
+export function restoreOrder(orderNo: string): void {
+  const db = getDatabase();
+  const order = db.prepare(
+    'SELECT id FROM orders WHERE order_no = ? AND deleted_at IS NOT NULL'
+  ).get(orderNo);
+
+  if (!order) {
+    throw Object.assign(new Error('订单不存在或未在垃圾桶中'), { statusCode: 404 });
+  }
+
+  db.prepare('UPDATE orders SET deleted_at = NULL WHERE order_no = ?').run(orderNo);
+}
+
+export function hardDeleteOrder(orderNo: string): void {
+  const db = getDatabase();
+  const order = db.prepare(
+    'SELECT id FROM orders WHERE order_no = ? AND deleted_at IS NOT NULL'
+  ).get(orderNo);
+
+  if (!order) {
+    throw Object.assign(new Error('订单不存在或未在垃圾桶中'), { statusCode: 404 });
   }
 
   db.prepare('DELETE FROM orders WHERE order_no = ?').run(orderNo);

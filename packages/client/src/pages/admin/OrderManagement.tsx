@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
-import { getOrders, getExportUrl, confirmPayment, verifyTransferPayment, deleteOrder } from '../../api/admin';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { getOrders, getExportUrl, confirmPayment, verifyTransferPayment, deleteOrder, batchDeleteOrders } from '../../api/admin';
 import type { Order, PaginatedOrders } from '../../types';
 import { getCurrencySymbol } from '../../utils/currency';
+import { OrderTrash } from './OrderTrash';
 
 export function OrderManagement() {
   const [data, setData] = useState<PaginatedOrders | null>(null);
@@ -16,6 +17,10 @@ export function OrderManagement() {
   const [verifyingOrder, setVerifyingOrder] = useState<Order | null>(null);
   const [bankLast4, setBankLast4] = useState('');
   const [verifySubmitting, setVerifySubmitting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchDeleting, setBatchDeleting] = useState(false);
+  const [showTrash, setShowTrash] = useState(false);
+  const selectAllRef = useRef<HTMLInputElement>(null);
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
@@ -32,6 +37,17 @@ export function OrderManagement() {
   useEffect(() => {
     loadOrders();
   }, [loadOrders]);
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [page, pageSize, status, search]);
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      const total = data?.orders.length ?? 0;
+      selectAllRef.current.indeterminate = selectedIds.size > 0 && selectedIds.size < total;
+    }
+  }, [selectedIds, data?.orders.length]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,7 +106,7 @@ export function OrderManagement() {
   };
 
   const handleDeleteOrder = async (orderNo: string) => {
-    if (!confirm(`确认删除订单 ${orderNo}？此操作不可恢复。`)) return;
+    if (!confirm(`确认将订单 ${orderNo} 移入垃圾桶？可在垃圾桶中恢复。`)) return;
 
     setDeletingOrder(orderNo);
     try {
@@ -103,11 +119,30 @@ export function OrderManagement() {
     }
   };
 
+  const handleBatchDelete = async () => {
+    if (!confirm(`确认将选中的 ${selectedIds.size} 个订单移入垃圾桶？`)) return;
+
+    setBatchDeleting(true);
+    try {
+      await batchDeleteOrders(Array.from(selectedIds));
+      setSelectedIds(new Set());
+      await loadOrders();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '批量删除失败');
+    } finally {
+      setBatchDeleting(false);
+    }
+  };
+
   const statusMap: Record<string, { label: string; className: string }> = {
     pending: { label: '待支付', className: 'bg-yellow-100 text-yellow-700' },
     paid: { label: '已支付', className: 'bg-green-100 text-green-700' },
     cancelled: { label: '已取消', className: 'bg-red-100 text-red-700' },
   };
+
+  if (showTrash) {
+    return <OrderTrash onBack={() => setShowTrash(false)} />;
+  }
 
   return (
     <div>
@@ -206,6 +241,13 @@ export function OrderManagement() {
           >
             导出CSV
           </button>
+
+          <button
+            onClick={() => setShowTrash(true)}
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm"
+          >
+            垃圾桶
+          </button>
         </div>
       </div>
 
@@ -219,6 +261,21 @@ export function OrderManagement() {
             <table className="w-full divide-y divide-gray-200" style={{ minWidth: '1000px' }}>
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-3 py-3 w-10">
+                    <input
+                      ref={selectAllRef}
+                      type="checkbox"
+                      checked={(data?.orders.length ?? 0) > 0 && selectedIds.size === data?.orders.length}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedIds(new Set(data?.orders.map(o => o.order_no) ?? []));
+                        } else {
+                          setSelectedIds(new Set());
+                        }
+                      }}
+                      className="rounded"
+                    />
+                  </th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">订单号</th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap" style={{ minWidth: '150px' }}>客户姓名</th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap" style={{ minWidth: '180px' }}>邮箱</th>
@@ -233,6 +290,19 @@ export function OrderManagement() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {data?.orders.map((order: Order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="px-3 py-3 w-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(order.order_no)}
+                        onChange={(e) => {
+                          const next = new Set(selectedIds);
+                          if (e.target.checked) next.add(order.order_no);
+                          else next.delete(order.order_no);
+                          setSelectedIds(next);
+                        }}
+                        className="rounded"
+                      />
+                    </td>
                     <td className="px-3 py-3 whitespace-nowrap text-sm font-mono text-gray-900">
                       {order.order_no}
                     </td>
@@ -303,7 +373,7 @@ export function OrderManagement() {
                 ))}
                 {data?.orders.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={10} className="px-4 py-8 text-center text-gray-500">
                       暂无订单数据
                     </td>
                   </tr>
@@ -311,6 +381,25 @@ export function OrderManagement() {
               </tbody>
             </table>
           </div>
+
+          {selectedIds.size > 0 && (
+            <div className="flex items-center gap-4 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <span className="text-sm text-blue-800 font-medium">已选择 {selectedIds.size} 条订单</span>
+              <button
+                onClick={handleBatchDelete}
+                disabled={batchDeleting}
+                className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                {batchDeleting ? '删除中...' : '批量移入垃圾桶'}
+              </button>
+              <button
+                onClick={() => setSelectedIds(new Set())}
+                className="px-4 py-2 text-gray-600 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                取消选择
+              </button>
+            </div>
+          )}
 
           {data && (
             <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">

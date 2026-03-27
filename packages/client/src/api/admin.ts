@@ -74,6 +74,27 @@ export async function deleteOrder(orderNo: string): Promise<void> {
   await api.delete(`/admin/orders/${orderNo}`);
 }
 
+export async function batchDeleteOrders(orderNos: string[]): Promise<{ deleted: number }> {
+  return api.post<{ deleted: number }>('/admin/orders/batch-delete', { orderNos });
+}
+
+export async function getTrashedOrders(params: GetOrdersParams = {}): Promise<PaginatedOrders> {
+  const query = new URLSearchParams();
+  if (params.page) query.set('page', params.page.toString());
+  if (params.pageSize) query.set('pageSize', params.pageSize.toString());
+  if (params.search) query.set('search', params.search);
+  const queryString = query.toString();
+  return api.get<PaginatedOrders>(`/admin/orders/trash${queryString ? `?${queryString}` : ''}`);
+}
+
+export async function restoreOrder(orderNo: string): Promise<void> {
+  await api.post(`/admin/orders/${orderNo}/restore`, {});
+}
+
+export async function permanentDeleteOrder(orderNo: string): Promise<void> {
+  await api.delete(`/admin/orders/${orderNo}/permanent`);
+}
+
 // Ticket management
 export async function getTicketsAdmin(): Promise<TicketType[]> {
   const data = await api.get<{ tickets: TicketType[] }>('/admin/tickets');

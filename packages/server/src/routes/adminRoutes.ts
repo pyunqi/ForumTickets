@@ -10,6 +10,10 @@ import {
   confirmPaymentHandler,
   verifyTransferHandler,
   deleteOrderHandler,
+  batchDeleteOrdersHandler,
+  getTrashedOrders,
+  restoreOrderHandler,
+  hardDeleteOrderHandler,
   getTickets,
   createTicketHandler,
   updateTicketHandler,
@@ -45,8 +49,12 @@ router.post('/conferences/:id/activate', superAdminMiddleware, conferenceControl
 // Order management (all admins)
 router.get('/orders', getOrders);
 router.get('/orders/export', exportOrders);
+router.get('/orders/trash', getTrashedOrders);
+router.post('/orders/batch-delete', batchDeleteOrdersHandler);
 router.post('/orders/:orderNo/confirm-payment', confirmPaymentHandler);
 router.post('/orders/:orderNo/verify-transfer', verifyTransferHandler);
+router.post('/orders/:orderNo/restore', restoreOrderHandler);
 router.delete('/orders/:orderNo', deleteOrderHandler);
+router.delete('/orders/:orderNo/permanent', hardDeleteOrderHandler);
 
 export default router;
