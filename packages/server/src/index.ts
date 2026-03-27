@@ -31,16 +31,6 @@ async function bootstrap() {
     db.prepare("ALTER TABLE orders ADD COLUMN currency VARCHAR(3) DEFAULT 'CNY'").run();
     console.log('Migration: added currency column to orders');
   }
-  if (!orderInfo.some(col => col.name === 'deleted_at')) {
-    db.prepare("ALTER TABLE orders ADD COLUMN deleted_at DATETIME DEFAULT NULL").run();
-    console.log('Migration: added deleted_at column to orders');
-  }
-  const orderIndexList = db.prepare("PRAGMA index_list(orders)").all() as { name: string }[];
-  if (!orderIndexList.some(idx => idx.name === 'idx_orders_deleted_at')) {
-    db.prepare("CREATE INDEX IF NOT EXISTS idx_orders_deleted_at ON orders(deleted_at)").run();
-    console.log('Migration: added index idx_orders_deleted_at');
-  }
-
   // Auto-seed super admin if not exists
   const existingAdmin = db.prepare('SELECT id FROM admins WHERE role = ?').get('super_admin');
   if (!existingAdmin) {

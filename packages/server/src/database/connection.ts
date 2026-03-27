@@ -129,6 +129,8 @@ async function initDatabase(): Promise<void> {
     'ALTER TABLE orders ADD COLUMN payment_method VARCHAR(20)',
     'ALTER TABLE orders ADD COLUMN payer_bank_last4 VARCHAR(4)',
     'ALTER TABLE orders ADD COLUMN verified_by VARCHAR(50)',
+    'ALTER TABLE orders ADD COLUMN deleted_at DATETIME DEFAULT NULL',
+    'CREATE INDEX IF NOT EXISTS idx_orders_deleted_at ON orders(deleted_at)',
   ];
 
   for (const migration of migrations) {

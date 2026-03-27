@@ -91,5 +91,4 @@ CREATE TABLE IF NOT EXISTS conferences (
 CREATE INDEX IF NOT EXISTS idx_orders_order_no ON orders(order_no);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
-CREATE INDEX IF NOT EXISTS idx_orders_deleted_at ON orders(deleted_at);
 `;
